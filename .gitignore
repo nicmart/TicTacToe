@@ -1,0 +1,9 @@
+project/boot
+target
+.lib
+.history
+.*.swp
+.idea
+.idea/*
+.idea_modules
+.sbtrc
