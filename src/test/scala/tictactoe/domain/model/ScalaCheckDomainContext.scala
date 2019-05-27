@@ -17,12 +17,12 @@ object ScalaCheckDomainContext extends RightOps with CommonOps {
       mark <- arbitrary[Mark]
     } yield Game.newGame(boardSize, mark, Rules)
 
-  val genNonFullGame: Gen[Game] =
+  val genInProgressGame: Gen[Game] =
     genNewGame.flatMap(genFutureGame(1))
 
   val genGameWithAvailableMove: Gen[(Game, Cell)] =
     for {
-      game <- genNonFullGame
+      game <- genInProgressGame
       move <- genAvailableMove(game)
     } yield (game, move)
 

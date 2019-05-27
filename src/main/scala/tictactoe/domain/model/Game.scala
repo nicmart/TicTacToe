@@ -8,6 +8,7 @@ sealed abstract case class Game(board: Board, currentMark: Mark, rules: Rules) {
 
   def makeMove(cell: Board.Cell): Either[Error, Game] =
     for {
+      _ <- rules.checkIfGameInProgress(this)
       _ <- rules.checkIfLegalMove(this, cell)
       newBoard <- board.withMark(currentMark, cell)
     } yield new Game(newBoard, currentMark.switch, rules) {}

@@ -1,10 +1,14 @@
 package tictactoe.domain.model
 
 import tictactoe.domain.model.Board.Cell
-import tictactoe.domain.model.GameState.Result.{Winner, Draw}
+import tictactoe.domain.model.Error.GameHasEnded
+import tictactoe.domain.model.GameState.InProgress
+import tictactoe.domain.model.GameState.Result.{Draw, Winner}
 
 trait Rules {
   def checkIfLegalMove(game: Game, cell: Cell): Either[Error, Unit]
+  def checkIfGameInProgress(game: Game): Either[Error, Unit] =
+    Either.cond(state(game) == InProgress, (), GameHasEnded)
   def availableMoves(game: Game): List[Cell]
   def state(game: Game): GameState
 }

@@ -7,16 +7,20 @@ class GameTest extends CommonTest {
     "should switch player after each move" in {
       forAll(genGameWithAvailableMove) {
         case (game, cell) =>
-          val gameNext = game.makeMove(cell).getRight
-          gameNext.currentMark shouldBe game.currentMark.switch
+          whenever(game.inProgress) {
+            val gameNext = game.makeMove(cell).getRight
+            gameNext.currentMark shouldBe game.currentMark.switch
+          }
       }
     }
 
     "should put the current player mark in the cell after each move" in {
       forAll(genGameWithAvailableMove) {
         case (game, cell) =>
-          val gameNext = game.makeMove(cell).getRight
-          gameNext.board.markAt(cell) shouldBe Some(game.currentMark)
+          whenever(game.inProgress) {
+            val gameNext = game.makeMove(cell).getRight
+            gameNext.board.markAt(cell) shouldBe Some(game.currentMark)
+          }
       }
     }
   }
