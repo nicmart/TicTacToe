@@ -27,34 +27,66 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
 
     "should return all the horizontal lines" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (line, values) =>
-          val cellsToMarks = values.zipWithIndex.flatMap {
-            case (value, column) => value.map(mark => Cell(line, column) -> mark)
+        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (y, cellStates) =>
+          val cellsToMarks = cellStates.zipWithIndex.flatMap {
+            case (value, x) => value.map(mark => Cell(x, y) -> mark)
           }
 
-          val boardWithMarks = cellsToMarks.foldLeft(emptyBoard) {
-            case (board, (cell, mark)) => board.withMark(mark, cell).right.get
-          }
+          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
 
-          boardWithMarks.horizontalLines(line) shouldBe values.toList
+          boardWithMarks.horizontalLines(y) shouldBe cellStates.toList
         }
       }
     }
 
     "should return all the vertical lines" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (column, values) =>
-          val cellsToMarks = values.zipWithIndex.flatMap {
-            case (value, line) => value.map(mark => Cell(line, column) -> mark)
+        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (x, cellStates) =>
+          val cellsToMarks = cellStates.zipWithIndex.flatMap {
+            case (value, y) => value.map(mark => Cell(x, y) -> mark)
           }
 
-          val boardWithMarks = cellsToMarks.foldLeft(emptyBoard) {
-            case (board, (cell, mark)) => board.withMark(mark, cell).right.get
-          }
+          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
 
-          boardWithMarks.verticalLines(column) shouldBe values.toList
+          boardWithMarks.verticalLines(x) shouldBe cellStates.toList
         }
       }
     }
+
+    "should return all the diagonal lines" - {
+      "first diagonal" in {
+        forAll(genEmptyBoard) { emptyBoard =>
+          forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
+            val cellsToMarks = values.zipWithIndex.flatMap {
+              case (value, x) => value.map(mark => Cell(x, x) -> mark)
+            }
+
+            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
+
+            boardWithMarks.diagonalLines(0) shouldBe values.toList
+          }
+        }
+      }
+      "second diagonal" in {
+        forAll(genEmptyBoard) { emptyBoard =>
+          forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
+            val cellsToMarks = values.zipWithIndex.flatMap {
+              case (value, x) => value.map(mark => Cell(emptyBoard.size.value - 1 - x, x) -> mark)
+            }
+
+            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
+
+            boardWithMarks.diagonalLines(1) shouldBe values.toList
+          }
+        }
+      }
+    }
+  }
+
+  implicit class BoardOps(board: Board) {
+    def withCells(cellsStates: Seq[(Cell, Mark)]): Board =
+      cellsStates.foldLeft(board) {
+        case (board, (cell, mark)) => board.withMark(mark, cell).right.get
+      }
   }
 }
