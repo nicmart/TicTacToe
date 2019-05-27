@@ -1,12 +1,10 @@
 package tictactoe.domain.model
 
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FreeSpec, Matchers}
 import tictactoe.domain.model.Board.Cell
 import tictactoe.domain.model.ScalaCheckDomainContext._
 
-class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyChecks {
+class BoardTest extends CommonTest {
   "A board" - {
     "should be completely empty when it is created" in {
       forAll(genEmptyBoard) { emptyBoard =>

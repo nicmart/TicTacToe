@@ -1,6 +1,7 @@
 package tictactoe.domain.model
 
 import org.scalacheck.{Arbitrary, Gen}
+import Arbitrary.arbitrary
 
 object ScalaCheckDomainContext {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
@@ -8,6 +9,22 @@ object ScalaCheckDomainContext {
 
   val genEmptyBoard: Gen[Board] =
     arbBoardSize.arbitrary.map(Board.emptyBoard)
+
+  val genNewGame: Gen[Game] =
+    for {
+      boardSize <- arbitrary[Board.Size]
+      mark <- arbitrary[Mark]
+    } yield Game.newGame(boardSize, mark)
+
+  val genGame: Gen[Game] =
+    for {
+      newGame <- genNewGame
+      size = newGame.board.size.value
+      numOfMoves <- Gen.choose(0, size)
+      moves <- Gen.listOfN(numOfMoves, genValidCell(size))
+    } yield moves.foldLeft(newGame) { (game, cell) =>
+      game.makeMove(cell).right.get
+    }
 
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
