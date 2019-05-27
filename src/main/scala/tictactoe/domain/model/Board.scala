@@ -11,8 +11,8 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
 
   def markAt(cell: Cell): Option[Mark] = cells(cell.y)(cell.x)
 
-  def horizontalLines: List[List[Option[Mark]]] =
-    cells.toList.map(_.toList)
+  def horizontalLines: List[Line.Horizontal] =
+    (0 until size.value).map(y => Line.Horizontal(y, cells(y))).toList
 
   def verticalLines: List[List[Option[Mark]]] = {
     def verticalLine(x: Int): List[Option[Mark]] =
@@ -28,8 +28,8 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
     )
   }
 
-  def allLines: List[List[Option[Mark]]] =
-    horizontalLines ++ verticalLines ++ diagonalLines
+//  def allLines: List[List[Option[Mark]]] =
+//    horizontalLines ++ verticalLines ++ diagonalLines
 
   private def validateCell(cell: Cell): Either[Error, Cell] =
     for {
@@ -46,4 +46,5 @@ object Board {
 
   case class Size(value: Int)
   case class Cell(x: Int, y: Int)
+  case class CellWithState(cell: Cell, state: Option[Mark])
 }

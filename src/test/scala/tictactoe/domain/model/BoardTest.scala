@@ -11,7 +11,7 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
   "A board" - {
     "should be completely empty when it is created" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCell(emptyBoard)) { cell =>
+        forAll(genValidCell(emptyBoard.size.value)) { cell =>
           emptyBoard.markAt(cell) shouldBe None
         }
       }
@@ -19,7 +19,7 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
 
     "should insert marks in valid cells" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(arbitrary[Mark], genValidCell(emptyBoard)) { (mark, cell) =>
+        forAll(arbitrary[Mark], genValidCell(emptyBoard.size.value)) { (mark, cell) =>
           val boardWithMark = emptyBoard.withMark(mark, cell).right.get
           boardWithMark.markAt(cell) shouldBe Some(mark)
         }
@@ -28,28 +28,25 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
 
     "should return all the horizontal lines" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (y, cellStates) =>
-          val cellsToMarks = cellStates.zipWithIndex.flatMap {
-            case (value, x) => value.map(mark => Cell(x, y) -> mark)
-          }
+        forAll(genHorizontalLine(emptyBoard.size.value)) { horizontalLine =>
+          val boardWithMarks = emptyBoard.withCells(horizontalLine.cellsWithMarks)
 
-          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
-
-          boardWithMarks.horizontalLines(y) shouldBe cellStates.toList
+          boardWithMarks.horizontalLines(horizontalLine.y) shouldBe horizontalLine
         }
       }
     }
 
     "should return all the vertical lines" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCellCoordinate(emptyBoard), genLineOfCellValues(emptyBoard.size.value)) { (x, cellStates) =>
-          val cellsToMarks = cellStates.zipWithIndex.flatMap {
-            case (value, y) => value.map(mark => Cell(x, y) -> mark)
-          }
+        forAll(genValidCellCoordinate(emptyBoard.size.value), genLineOfCellValues(emptyBoard.size.value)) {
+          (x, cellStates) =>
+            val cellsToMarks = cellStates.zipWithIndex.flatMap {
+              case (value, y) => value.map(mark => Cell(x, y) -> mark)
+            }
 
-          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
+            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
 
-          boardWithMarks.verticalLines(x) shouldBe cellStates.toList
+            boardWithMarks.verticalLines(x) shouldBe cellStates.toList
         }
       }
     }
