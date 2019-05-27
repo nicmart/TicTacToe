@@ -5,7 +5,10 @@ ThisBuild / scalaVersion     := "2.12.8"
 lazy val root = (project in file("."))
   .settings(
     name := "tictactoe",
-    libraryDependencies += scalaTest % Test,
+    libraryDependencies ++= Seq(
+      scalaTest % Test,
+      scalaCheck % Test
+    ),
     scalacOptions ++= ScalacOptions.options
   )
 

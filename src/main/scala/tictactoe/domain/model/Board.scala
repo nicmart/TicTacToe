@@ -2,14 +2,26 @@ package tictactoe.domain.model
 
 import tictactoe.domain.model.Board.{Size, _}
 
-sealed abstract case class Board(size: Size) {
+sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Option[Mark]]]) {
 
-  def withMark(mark: Mark, cell: Cell): Either[Error, Board] = ???
-  def markAt(cell: Cell): Option[Mark] = ???
+  def withMark(mark: Mark, cell: Cell): Either[Error, Board] =
+    validateCell(cell).map { cell =>
+      new Board(size, cells.updated(cell.x, cells(cell.x).updated(cell.y, Some(mark)))) {}
+    }
 
-  def horizontalLines: List[Option[Mark]] = ???
-  def verticalLines: List[Option[Mark]] = ???
-  def diagonalLines: List[Option[Mark]] = ???
+  def markAt(cell: Cell): Option[Mark] = cells(cell.x)(cell.y)
+
+  def horizontalLines: List[List[Option[Mark]]] =
+    cells.toList.map(_.toList)
+
+  def verticalLines: List[List[Option[Mark]]] = {
+    def verticalLine(column: Int): List[Option[Mark]] =
+      (0 until size.value).map(line => markAt(Cell(line, column))).toList
+
+    (0 until size.value).map(verticalLine).toList
+  }
+
+  def diagonalLines: List[List[Option[Mark]]] = ???
 
   private def validateCell(cell: Cell): Either[Error, Cell] =
     for {
@@ -22,7 +34,8 @@ sealed abstract case class Board(size: Size) {
 }
 
 object Board {
-  def apply(size: Size): Board = new Board(size) {}
+  def emptyBoard(size: Size): Board = new Board(size, Vector.fill(size.value, size.value)(None)) {}
+
   case class Size(value: Int)
   case class Cell(x: Int, y: Int)
 }
