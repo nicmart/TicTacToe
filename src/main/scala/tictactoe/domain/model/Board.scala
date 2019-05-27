@@ -25,10 +25,4 @@ object Board {
   def apply(size: Size): Board = new Board(size) {}
   case class Size(value: Int)
   case class Cell(x: Int, y: Int)
-
-  sealed trait Error
-  object Error {
-    case object InvalidXCoordinate extends Error
-    case object InvalidYCoordinate extends Error
-  }
 }
