@@ -4,7 +4,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import Arbitrary.arbitrary
 import tictactoe.domain.model.Board.Cell
 
-object ScalaCheckDomainContext extends RightOps {
+object ScalaCheckDomainContext extends RightOps with CommonOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
   implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 10).map(Board.Size))
 
@@ -25,6 +25,12 @@ object ScalaCheckDomainContext extends RightOps {
       game <- genNonFullGame
       move <- genAvailableMove(game)
     } yield (game, move)
+
+  def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[List[Cell]] =
+    for {
+      line <- genLine(size)
+      moves <- intersperseWithOpponentMoves(size, line.cells)
+    } yield moves
 
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
@@ -84,4 +90,12 @@ object ScalaCheckDomainContext extends RightOps {
     for {
       move <- genAvailableMove(current)
     } yield current.makeMove(move).getRight
+
+  private def intersperseWithOpponentMoves(size: Int, moves: List[Cell]): Gen[List[Cell]] =
+    for {
+      board <- Gen.const(Board.emptyBoard(Board.Size(size)))
+      movesWithMarks = moves.map(cell => cell -> Mark.X)
+      boardWithMoves = board.withCells(movesWithMarks)
+      opponentMoves <- Gen.pick(moves.size - 1, boardWithMoves.emptyCells)
+    } yield moves.zip(opponentMoves).flatMap { case (m1, m2) => List(m1, m2) } ::: List(moves.last)
 }
