@@ -4,6 +4,7 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
 import org.scalacheck.Arbitrary.arbitrary
 import ScalaCheckDomainContext._
+import org.scalacheck.Gen
 import tictactoe.domain.model.Board.Cell
 
 class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyChecks {
@@ -53,31 +54,18 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
       }
     }
 
-    "should return all the diagonal lines" - {
-      "first diagonal" in {
-        forAll(genEmptyBoard) { emptyBoard =>
-          forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
-            val cellsToMarks = values.zipWithIndex.flatMap {
-              case (value, x) => value.map(mark => Cell(x, x) -> mark)
-            }
-
-            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
-
-            boardWithMarks.diagonalLines(0) shouldBe values.toList
+    "should return all the diagonal lines" in {
+      forAll(genEmptyBoard, Gen.oneOf(0, 1)) { (emptyBoard, diagonal) =>
+        def xCoordinateForDiagonal(y: Int): Int =
+          if (diagonal == 0) y else emptyBoard.size.value - 1 - y
+        forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
+          val cellsToMarks = values.zipWithIndex.flatMap {
+            case (value, y) => value.map(mark => Cell(xCoordinateForDiagonal(y), y) -> mark)
           }
-        }
-      }
-      "second diagonal" in {
-        forAll(genEmptyBoard) { emptyBoard =>
-          forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
-            val cellsToMarks = values.zipWithIndex.flatMap {
-              case (value, x) => value.map(mark => Cell(emptyBoard.size.value - 1 - x, x) -> mark)
-            }
 
-            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
+          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
 
-            boardWithMarks.diagonalLines(1) shouldBe values.toList
-          }
+          boardWithMarks.diagonalLines(diagonal) shouldBe values.toList
         }
       }
     }
