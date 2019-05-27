@@ -14,22 +14,21 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
   def horizontalLines: List[Line.Horizontal] =
     (0 until size.value).map(y => Line.Horizontal(y, cells(y))).toList
 
-  def verticalLines: List[List[Option[Mark]]] = {
-    def verticalLine(x: Int): List[Option[Mark]] =
-      (0 until size.value).map(y => markAt(Cell(x, y))).toList
+  def verticalLines: List[Line.Vertical] = {
+    def verticalLine(x: Int): Line.Vertical =
+      Line.Vertical(x, (0 until size.value).map(y => markAt(Cell(x, y))).toVector)
 
     (0 until size.value).map(verticalLine).toList
   }
 
-  def diagonalLines: List[List[Option[Mark]]] = {
-    List(
-      (0 until size.value).map(x => markAt(Cell(x, x))).toList,
-      (0 until size.value).map(x => markAt(Cell(size.value - 1 - x, x))).toList
-    )
-  }
+  def firstDiagonalLine: Line.FirstDiagonal =
+    Line.FirstDiagonal((0 until size.value).map(x => markAt(Cell(x, x))).toVector)
 
-//  def allLines: List[List[Option[Mark]]] =
-//    horizontalLines ++ verticalLines ++ diagonalLines
+  def secondDiagonalLine: Line.SecondDiagonal =
+    Line.SecondDiagonal((0 until size.value).map(x => markAt(Cell(size.value - 1 - x, x))).toVector)
+
+  def allLines: List[Line] =
+    firstDiagonalLine :: secondDiagonalLine :: horizontalLines ::: verticalLines
 
   private def validateCell(cell: Cell): Either[Error, Cell] =
     for {

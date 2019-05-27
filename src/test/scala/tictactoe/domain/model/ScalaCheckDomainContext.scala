@@ -12,6 +12,14 @@ object ScalaCheckDomainContext {
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
 
+  def genLine(size: Int): Gen[Line] =
+    Gen.frequency(
+      size -> genHorizontalLine(size),
+      size -> genVerticalLine(size),
+      1 -> genFirstDiagonalLine(size),
+      1 -> genSecondDiagonalLine(size)
+    )
+
   def genHorizontalLine(size: Int): Gen[Line.Horizontal] =
     for {
       y <- genValidCellCoordinate(size)

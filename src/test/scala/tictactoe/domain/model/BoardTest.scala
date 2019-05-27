@@ -1,11 +1,10 @@
 package tictactoe.domain.model
 
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{FreeSpec, Matchers}
-import org.scalacheck.Arbitrary.arbitrary
-import ScalaCheckDomainContext._
-import org.scalacheck.Gen
 import tictactoe.domain.model.Board.Cell
+import tictactoe.domain.model.ScalaCheckDomainContext._
 
 class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyChecks {
   "A board" - {
@@ -26,43 +25,12 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
       }
     }
 
-    "should return all the horizontal lines" in {
+    "should return lines" in {
       forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genHorizontalLine(emptyBoard.size.value)) { horizontalLine =>
-          val boardWithMarks = emptyBoard.withCells(horizontalLine.cellsWithMarks)
-
-          boardWithMarks.horizontalLines(horizontalLine.y) shouldBe horizontalLine
-        }
-      }
-    }
-
-    "should return all the vertical lines" in {
-      forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genValidCellCoordinate(emptyBoard.size.value), genLineOfCellValues(emptyBoard.size.value)) {
-          (x, cellStates) =>
-            val cellsToMarks = cellStates.zipWithIndex.flatMap {
-              case (value, y) => value.map(mark => Cell(x, y) -> mark)
-            }
-
-            val boardWithMarks = emptyBoard.withCells(cellsToMarks)
-
-            boardWithMarks.verticalLines(x) shouldBe cellStates.toList
-        }
-      }
-    }
-
-    "should return all the diagonal lines" in {
-      forAll(genEmptyBoard, Gen.oneOf(0, 1)) { (emptyBoard, diagonal) =>
-        def xCoordinateForDiagonal(y: Int): Int =
-          if (diagonal == 0) y else emptyBoard.size.value - 1 - y
-        forAll(genLineOfCellValues(emptyBoard.size.value)) { values =>
-          val cellsToMarks = values.zipWithIndex.flatMap {
-            case (value, y) => value.map(mark => Cell(xCoordinateForDiagonal(y), y) -> mark)
-          }
-
-          val boardWithMarks = emptyBoard.withCells(cellsToMarks)
-
-          boardWithMarks.diagonalLines(diagonal) shouldBe values.toList
+        forAll(genLine(emptyBoard.size.value)) { line =>
+          val boardWithMarks = emptyBoard.withCells(line.cellsWithMarks)
+          boardWithMarks.line(line) shouldBe line
+          boardWithMarks.allLines should contain(line)
         }
       }
     }
@@ -73,5 +41,12 @@ class BoardTest extends FreeSpec with Matchers with GeneratorDrivenPropertyCheck
       cellsStates.foldLeft(board) {
         case (board, (cell, mark)) => board.withMark(mark, cell).right.get
       }
+
+    def line(line: Line): Line = line match {
+      case Line.Horizontal(y, _)  => board.horizontalLines(y)
+      case Line.Vertical(x, _)    => board.verticalLines(x)
+      case Line.FirstDiagonal(_)  => board.firstDiagonalLine
+      case Line.SecondDiagonal(_) => board.secondDiagonalLine
+    }
   }
 }
