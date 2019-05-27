@@ -11,6 +11,15 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
 
   def markAt(cell: Cell): Option[Mark] = cells(cell.y)(cell.x)
 
+  def emptyCells: Seq[Cell] =
+    for {
+      x <- 0 until size.value
+      y <- 0 until size.value
+      cell = Cell(x, y)
+      state = markAt(Cell(x, y))
+      cell <- state.fold(Option(cell))(_ => None)
+    } yield cell
+
   def horizontalLines: List[Line.Horizontal] =
     (0 until size.value).map(y => Line.Horizontal(y, cells(y))).toList
 

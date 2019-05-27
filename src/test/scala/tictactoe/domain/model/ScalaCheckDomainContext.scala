@@ -2,10 +2,11 @@ package tictactoe.domain.model
 
 import org.scalacheck.{Arbitrary, Gen}
 import Arbitrary.arbitrary
+import tictactoe.domain.model.Board.Cell
 
-object ScalaCheckDomainContext {
+object ScalaCheckDomainContext extends RightOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
-  implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 100).map(Board.Size))
+  implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 10).map(Board.Size))
 
   val genEmptyBoard: Gen[Board] =
     arbBoardSize.arbitrary.map(Board.emptyBoard)
@@ -14,17 +15,16 @@ object ScalaCheckDomainContext {
     for {
       boardSize <- arbitrary[Board.Size]
       mark <- arbitrary[Mark]
-    } yield Game.newGame(boardSize, mark)
+    } yield Game.newGame(boardSize, mark, Rules)
 
-  val genGame: Gen[Game] =
+  val genNonFinishedGame: Gen[Game] =
+    genNewGame.flatMap(genFutureGame(1))
+
+  val genGameWithAvailableMove: Gen[(Game, Cell)] =
     for {
-      newGame <- genNewGame
-      size = newGame.board.size.value
-      numOfMoves <- Gen.choose(0, size)
-      moves <- Gen.listOfN(numOfMoves, genValidCell(size))
-    } yield moves.foldLeft(newGame) { (game, cell) =>
-      game.makeMove(cell).right.get
-    }
+      game <- genNonFinishedGame
+      move <- genAvailableMove(game)
+    } yield (game, move)
 
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
@@ -66,4 +66,22 @@ object ScalaCheckDomainContext {
 
   def genValidCellCoordinate(size: Int): Gen[Int] =
     Gen.choose(0, size - 1)
+
+  private def genFutureGame(minAvailableCells: Int)(current: Game): Gen[Game] =
+    if (current.availableMoves.size <= minAvailableCells) Gen.const(current)
+    else
+      Gen.frequency(
+        1 -> Gen.const(current),
+        current.availableMoves.size - minAvailableCells -> genNextGame(current).flatMap(
+          genFutureGame(minAvailableCells)
+        )
+      )
+
+  private def genAvailableMove(game: Game): Gen[Cell] =
+    Gen.oneOf(game.board.emptyCells)
+
+  private def genNextGame(current: Game): Gen[Game] =
+    for {
+      move <- genAvailableMove(current)
+    } yield current.makeMove(move).getRight
 }
