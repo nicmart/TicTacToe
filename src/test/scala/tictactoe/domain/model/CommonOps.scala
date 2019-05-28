@@ -3,7 +3,7 @@ package tictactoe.domain.model
 import tictactoe.domain.model.Board.Cell
 import tictactoe.domain.model.GameState.InProgress
 
-trait CommonOps extends RightOps {
+trait CommonOps extends EitherOps {
   implicit class BoardOps(board: Board) {
     def withCells(cellsStates: Seq[(Cell, Mark)]): Board =
       cellsStates.foldLeft(board) {

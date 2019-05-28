@@ -8,7 +8,7 @@ trait CommonTest
     extends FreeSpec
     with Matchers
     with GeneratorDrivenPropertyChecks
-    with RightOps
+    with EitherOps
     with CommonOps {
   implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny
 }

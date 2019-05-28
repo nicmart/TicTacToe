@@ -4,21 +4,21 @@ import org.scalacheck.{Arbitrary, Gen}
 import Arbitrary.arbitrary
 import tictactoe.domain.model.Board.Cell
 
-object ScalaCheckDomainContext extends RightOps with CommonOps {
+object ScalaCheckDomainContext extends EitherOps with CommonOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
-  implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 10).map(Board.Size))
+  implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 2).map(Board.Size))
 
   val genEmptyBoard: Gen[Board] =
     arbBoardSize.arbitrary.map(Board.emptyBoard)
 
+  def genNewGameOfSize(size: Int): Gen[Game] =
+    arbitrary[Mark].map(mark => Game.newGame(Board.Size(size), mark, Rules))
+
   val genNewGame: Gen[Game] =
-    for {
-      boardSize <- arbitrary[Board.Size]
-      mark <- arbitrary[Mark]
-    } yield Game.newGame(boardSize, mark, Rules)
+    arbitrary[Board.Size].flatMap(size => genNewGameOfSize(size.value))
 
   val genInProgressGame: Gen[Game] =
-    genNewGame.flatMap(genFutureGame(1))
+    genNewGame.flatMap(genInProgressGameFrom)
 
   val genGameWithAvailableMove: Gen[(Game, Cell)] =
     for {
@@ -26,11 +26,24 @@ object ScalaCheckDomainContext extends RightOps with CommonOps {
       move <- genAvailableMove(game)
     } yield (game, move)
 
+  val genInProgressGameWithMoveThatWillNotEndTheGame: Gen[(Game, Cell)] =
+    for {
+      size <- Gen.choose(2, 10)
+      emptyGame <- genNewGameOfSize(size)
+      move <- genAvailableMove(emptyGame)
+    } yield (emptyGame, move)
+
   def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[List[Cell]] =
     for {
       line <- genLine(size)
       moves <- intersperseWithOpponentMoves(size, line.cells)
     } yield moves
+
+  val genWonGame: Gen[Game] = for {
+    emptyGame <- genNewGame
+    winningMoves <- genHistoryOfMovesWhereCurrentPlayerWins(emptyGame.size)
+    finishedGame = emptyGame.withMoves(winningMoves)
+  } yield finishedGame
 
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
@@ -73,18 +86,20 @@ object ScalaCheckDomainContext extends RightOps with CommonOps {
   def genValidCellCoordinate(size: Int): Gen[Int] =
     Gen.choose(0, size - 1)
 
-  private def genFutureGame(minAvailableCells: Int)(current: Game): Gen[Game] =
-    if (current.availableMoves.size <= minAvailableCells) Gen.const(current)
+  private def genInProgressGameFrom(current: Game): Gen[Game] =
+    if (current.availableMoves.size <= 1) Gen.const(current)
     else
       Gen.frequency(
         1 -> Gen.const(current),
-        current.availableMoves.size - minAvailableCells -> genNextGame(current).flatMap(
-          genFutureGame(minAvailableCells)
-        )
+        current.availableMoves.size - 1 ->
+          genNextGame(current).flatMap(
+            nextGame =>
+              if (nextGame.inProgress) genInProgressGameFrom(nextGame) else Gen.const(current)
+          )
       )
 
-  private def genAvailableMove(game: Game): Gen[Cell] =
-    Gen.oneOf(game.board.emptyCells)
+  def genAvailableMove(game: Game): Gen[Cell] =
+    Gen.oneOf(game.availableMoves)
 
   private def genNextGame(current: Game): Gen[Game] =
     for {

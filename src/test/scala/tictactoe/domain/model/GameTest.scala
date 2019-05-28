@@ -23,5 +23,23 @@ class GameTest extends CommonTest {
           }
       }
     }
+
+    "should return an error when moving on occupied cells" in {
+      forAll(genInProgressGameWithMoveThatWillNotEndTheGame) {
+        case (game, move) =>
+          val boardWithMove = game.makeMove(move).getRight
+          val error = boardWithMove.makeMove(move).getLeft
+          error shouldBe Error.CellOccupied(boardWithMove, move)
+      }
+    }
+
+    "should return an error when moving on a fineshed game" in {
+      forAll(genWonGame) { game =>
+        forAll(genValidCell(game.size)) { move =>
+          val error = game.makeMove(move).getLeft
+          error shouldBe Error.GameHasAlreadyEnded
+        }
+      }
+    }
   }
 }
