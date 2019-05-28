@@ -8,6 +8,7 @@ trait Rules {
   def checkIfLegalMove(game: Game, cell: Cell): Either[Error, Unit]
   def availableMoves(game: Game): List[Cell]
   def state(game: Game): GameState
+  def nextPlayer(game: Game): Mark
 }
 
 object Rules extends Rules {
@@ -25,6 +26,8 @@ object Rules extends Rules {
       case Nil                                   => GameState.Finished(Draw)
       case mark :: _                             => GameState.Finished(Winner(mark))
     }
+
+  override def nextPlayer(game: Game): Mark = game.currentMark.switch
 
   private def winner(line: Line): Option[Mark] =
     if (line.cellsStates.forall(state => state.contains(Mark.O))) Some(Mark.O)

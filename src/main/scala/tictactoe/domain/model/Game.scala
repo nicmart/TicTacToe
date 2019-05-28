@@ -14,7 +14,7 @@ sealed abstract case class Game(board: Board, currentMark: Mark, rules: Rules) {
       _ <- Either.cond(inProgress, (), Error.GameHasAlreadyEnded)
       _ <- rules.checkIfLegalMove(this, cell)
       newBoard <- board.withMark(currentMark, cell)
-    } yield new Game(newBoard, currentMark.switch, rules) {}
+    } yield new Game(newBoard, rules.nextPlayer(this), rules) {}
 }
 
 object Game {
