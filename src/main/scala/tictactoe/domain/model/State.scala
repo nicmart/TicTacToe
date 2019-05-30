@@ -1,9 +1,10 @@
 package tictactoe.domain.model
 
-sealed trait State
+sealed abstract class State(val inProgress: Boolean)
+
 object State {
-  final case object InProgress extends State
-  final case class Finished(result: Result) extends State
+  final case class InProgress(currentPlayer: Player) extends State(true)
+  final case class Finished(result: Result) extends State(false)
 
   sealed trait Result
   object Result {

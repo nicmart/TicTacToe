@@ -22,5 +22,7 @@ trait CommonOps extends EitherOps {
       moves.foldLeft(game) {
         case (currGame, cell) => currGame.makeMove(cell).getRight
       }
+
+    def unsafeCurrentPlayer: Player = game.state.asInstanceOf[State.InProgress].currentPlayer
   }
 }
