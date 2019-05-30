@@ -1,14 +1,13 @@
 package tictactoe.domain.model
 
 import tictactoe.domain.model.Board.Cell
-import tictactoe.domain.model.GameState.Result.{Draw, Winner}
+import tictactoe.domain.model.State.Result.{Draw, Winner}
 
-sealed abstract case class StandardGame(board: Board, override val currentPlayer: Mark)
-    extends Game {
-  override val state: GameState = board.allLines.flatMap(winner) match {
-    case Nil if board.emptyCells.nonEmpty => GameState.InProgress
-    case Nil                              => GameState.Finished(Draw)
-    case mark :: _                        => GameState.Finished(Winner(mark))
+sealed abstract case class StandardGame(board: Board, currentPlayer: Player) extends Game {
+  override val state: State = board.allLines.flatMap(winner) match {
+    case Nil if board.emptyCells.nonEmpty => State.InProgress
+    case Nil                              => State.Finished(Draw)
+    case mark :: _                        => State.Finished(Winner(Player(mark)))
   }
 
   override def availableMoves: List[Cell] =
@@ -18,7 +17,7 @@ sealed abstract case class StandardGame(board: Board, override val currentPlayer
     for {
       _ <- Either.cond(inProgress, (), Error.GameHasAlreadyEnded)
       _ <- checkIfLegalMove(cell)
-      newBoard <- board.withMark(currentPlayer, cell)
+      newBoard <- board.withMark(currentPlayer.mark, cell)
     } yield new StandardGame(newBoard, currentPlayer.switch) {}
 
   private def checkIfLegalMove(cell: Cell): Either[Error, Unit] =
@@ -31,6 +30,6 @@ sealed abstract case class StandardGame(board: Board, override val currentPlayer
 }
 
 object StandardGame {
-  def newGame(size: Board.Size, currentPlayer: Mark): StandardGame =
+  def newGame(size: Board.Size, currentPlayer: Player): StandardGame =
     new StandardGame(Board.emptyBoard(size), currentPlayer) {}
 }

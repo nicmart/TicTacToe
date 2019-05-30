@@ -1,7 +1,7 @@
 package tictactoe.domain.model
 
 import ScalaCheckDomainContext._
-import tictactoe.domain.model.GameState.Result.Winner
+import tictactoe.domain.model.State.Result.Winner
 
 class StandardGameTest extends CommonTest {
   "A Standard TicTacToe Game" - {
@@ -20,7 +20,7 @@ class StandardGameTest extends CommonTest {
         case (game, cell) =>
           whenever(game.inProgress) {
             val gameNext = game.makeMove(cell).getRight
-            gameNext.board.markAt(cell) shouldBe Some(game.currentPlayer)
+            gameNext.board.markAt(cell) shouldBe Some(game.currentPlayer.mark)
           }
       }
     }
@@ -45,7 +45,7 @@ class StandardGameTest extends CommonTest {
 
     "for an empty game" in {
       forAll(genNewGame) { game =>
-        game.state shouldBe GameState.InProgress
+        game.state shouldBe State.InProgress
       }
     }
 
@@ -53,7 +53,7 @@ class StandardGameTest extends CommonTest {
       forAll(genNewGame) { newGame =>
         forAll(genHistoryOfMovesWhereCurrentPlayerWins(newGame.size)) { moves =>
           val gameWithMoves = newGame.withMoves(moves)
-          gameWithMoves.state shouldBe GameState.Finished(Winner(newGame.currentPlayer))
+          gameWithMoves.state shouldBe State.Finished(Winner(newGame.currentPlayer))
         }
       }
     }
