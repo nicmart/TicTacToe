@@ -1,15 +1,16 @@
 package tictactoe.domain.model
 
 import ScalaCheckDomainContext._
+import tictactoe.domain.model.GameState.Result.Winner
 
-class GameTest extends CommonTest {
-  "A Game" - {
+class StandardGameTest extends CommonTest {
+  "A Standard TicTacToe Game" - {
     "should switch player after each move" in {
       forAll(genGameWithAvailableMove) {
         case (game, cell) =>
           whenever(game.inProgress) {
             val gameNext = game.makeMove(cell).getRight
-            gameNext.currentMark shouldBe game.currentMark.switch
+            gameNext.currentPlayer shouldBe game.currentPlayer.switch
           }
       }
     }
@@ -19,7 +20,7 @@ class GameTest extends CommonTest {
         case (game, cell) =>
           whenever(game.inProgress) {
             val gameNext = game.makeMove(cell).getRight
-            gameNext.board.markAt(cell) shouldBe Some(game.currentMark)
+            gameNext.board.markAt(cell) shouldBe Some(game.currentPlayer)
           }
       }
     }
@@ -38,6 +39,21 @@ class GameTest extends CommonTest {
         forAll(genValidCell(game.size)) { move =>
           val error = game.makeMove(move).getLeft
           error shouldBe Error.GameHasAlreadyEnded
+        }
+      }
+    }
+
+    "for an empty game" in {
+      forAll(genNewGame) { game =>
+        game.state shouldBe GameState.InProgress
+      }
+    }
+
+    "for a winning game" in {
+      forAll(genNewGame) { newGame =>
+        forAll(genHistoryOfMovesWhereCurrentPlayerWins(newGame.size)) { moves =>
+          val gameWithMoves = newGame.withMoves(moves)
+          gameWithMoves.state shouldBe GameState.Finished(Winner(newGame.currentPlayer))
         }
       }
     }

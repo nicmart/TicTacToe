@@ -11,22 +11,22 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
   val genEmptyBoard: Gen[Board] =
     arbBoardSize.arbitrary.map(Board.emptyBoard)
 
-  def genNewGameOfSize(size: Int): Gen[Game] =
-    arbitrary[Mark].map(mark => Game.newGame(Board.Size(size), mark, Rules))
+  def genNewGameOfSize(size: Int): Gen[StandardGame] =
+    arbitrary[Mark].map(mark => StandardGame.newGame(Board.Size(size), mark))
 
-  val genNewGame: Gen[Game] =
+  val genNewGame: Gen[StandardGame] =
     arbitrary[Board.Size].flatMap(size => genNewGameOfSize(size.value))
 
-  val genInProgressGame: Gen[Game] =
+  val genInProgressGame: Gen[StandardGame] =
     genNewGame.flatMap(genInProgressGameFrom)
 
-  val genGameWithAvailableMove: Gen[(Game, Cell)] =
+  val genGameWithAvailableMove: Gen[(StandardGame, Cell)] =
     for {
       game <- genInProgressGame
       move <- genAvailableMove(game)
     } yield (game, move)
 
-  val genInProgressGameWithMoveThatWillNotEndTheGame: Gen[(Game, Cell)] =
+  val genInProgressGameWithMoveThatWillNotEndTheGame: Gen[(StandardGame, Cell)] =
     for {
       size <- Gen.choose(2, 10)
       emptyGame <- genNewGameOfSize(size)
@@ -39,7 +39,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
       moves <- intersperseWithOpponentMoves(size, line.cells)
     } yield moves
 
-  val genWonGame: Gen[Game] = for {
+  val genWonGame: Gen[StandardGame] = for {
     emptyGame <- genNewGame
     winningMoves <- genHistoryOfMovesWhereCurrentPlayerWins(emptyGame.size)
     finishedGame = emptyGame.withMoves(winningMoves)
@@ -86,7 +86,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
   def genValidCellCoordinate(size: Int): Gen[Int] =
     Gen.choose(0, size - 1)
 
-  private def genInProgressGameFrom(current: Game): Gen[Game] =
+  private def genInProgressGameFrom(current: StandardGame): Gen[StandardGame] =
     if (current.availableMoves.size <= 1) Gen.const(current)
     else
       Gen.frequency(
@@ -98,10 +98,10 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
           )
       )
 
-  def genAvailableMove(game: Game): Gen[Cell] =
+  def genAvailableMove(game: StandardGame): Gen[Cell] =
     Gen.oneOf(game.availableMoves)
 
-  private def genNextGame(current: Game): Gen[Game] =
+  private def genNextGame(current: StandardGame): Gen[StandardGame] =
     for {
       move <- genAvailableMove(current)
     } yield current.makeMove(move).getRight

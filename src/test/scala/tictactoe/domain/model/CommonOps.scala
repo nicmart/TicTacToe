@@ -1,7 +1,6 @@
 package tictactoe.domain.model
 
 import tictactoe.domain.model.Board.Cell
-import tictactoe.domain.model.GameState.InProgress
 
 trait CommonOps extends EitherOps {
   implicit class BoardOps(board: Board) {
@@ -18,11 +17,10 @@ trait CommonOps extends EitherOps {
     }
   }
 
-  implicit class GameOps(game: Game) {
-    def withMoves(moves: Seq[Cell]): Game =
+  implicit class GameOps(game: StandardGame) {
+    def withMoves(moves: Seq[Cell]): StandardGame =
       moves.foldLeft(game) {
         case (currGame, cell) => currGame.makeMove(cell).getRight
       }
-    def inProgress: Boolean = Rules.state(game) == InProgress
   }
 }
