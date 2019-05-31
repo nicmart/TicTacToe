@@ -1,9 +1,9 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
-import tictactoe.domain.Game
-import tictactoe.domain.model.Board.Cell
-import tictactoe.domain.model.State.InProgress
-import tictactoe.domain.model.State.Result.{Draw, Winner}
+import tictactoe.domain.game.Game
+import tictactoe.domain.game.model.Board.Cell
+import tictactoe.domain.game.model.State.InProgress
+import tictactoe.domain.game.model.State.Result.{Draw, Winner}
 
 sealed abstract case class StandardGame(board: Board, state: State) extends Game {
 

@@ -1,9 +1,9 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 import org.scalacheck.{Arbitrary, Gen}
 import Arbitrary.arbitrary
-import tictactoe.domain.Game
-import tictactoe.domain.model.Board.Cell
+import tictactoe.domain.game.Game
+import tictactoe.domain.game.model.Board.Cell
 
 object ScalaCheckDomainContext extends EitherOps with CommonOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))

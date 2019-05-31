@@ -1,6 +1,6 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
-import tictactoe.domain.model.Board.{Size, _}
+import tictactoe.domain.game.model.Board.{Size, _}
 
 sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Option[Mark]]]) {
 

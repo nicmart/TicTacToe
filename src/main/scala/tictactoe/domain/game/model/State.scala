@@ -1,4 +1,4 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 sealed abstract class State(val inProgress: Boolean)
 

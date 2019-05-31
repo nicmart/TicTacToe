@@ -1,7 +1,7 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 import ScalaCheckDomainContext._
-import tictactoe.domain.model.State.Result.Winner
+import tictactoe.domain.game.model.State.Result.Winner
 
 class StandardGameTest extends CommonTest {
   "A Standard TicTacToe Game" - {

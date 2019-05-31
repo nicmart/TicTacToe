@@ -1,4 +1,4 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 sealed trait Mark {
   def switch: Mark = this match {

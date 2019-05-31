@@ -1,6 +1,6 @@
-package tictactoe.domain
+package tictactoe.domain.game
 
-import tictactoe.domain.model.{Board, Error, State}
+import tictactoe.domain.game.model._
 
 trait Game {
   def board: Board

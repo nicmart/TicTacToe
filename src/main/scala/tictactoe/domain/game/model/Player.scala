@@ -1,4 +1,4 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 final case class Player(mark: Mark) {
   def switch: Player = Player(mark.switch)

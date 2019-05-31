@@ -1,6 +1,6 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
-import tictactoe.domain.model.Board.Cell
+import tictactoe.domain.game.model.Board.Cell
 
 sealed abstract class Line {
   def cellsStates: Vector[Option[Mark]]

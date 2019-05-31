@@ -1,4 +1,4 @@
-package tictactoe.domain.model
+package tictactoe.domain.game.model
 
 import org.scalacheck.Shrink
 import org.scalatest.{FreeSpec, Matchers}
