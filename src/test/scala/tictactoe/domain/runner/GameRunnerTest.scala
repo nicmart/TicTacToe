@@ -5,7 +5,6 @@ import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.{Game, model}
-import tictactoe.domain.presenter.GamePresenter
 
 class GameRunnerTest extends CommonTest {
   "A Game Runner" - {

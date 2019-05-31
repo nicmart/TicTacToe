@@ -4,7 +4,6 @@ import scalaz.zio.IO
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Mark, Player}
-import tictactoe.domain.presenter.GamePresenter
 
 final case class GameRunner(
     game: Game,

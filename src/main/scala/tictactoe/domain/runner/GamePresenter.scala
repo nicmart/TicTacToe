@@ -1,4 +1,4 @@
-package tictactoe.domain.presenter
+package tictactoe.domain.runner
 
 import scalaz.zio.IO
 import tictactoe.domain.game.Game
