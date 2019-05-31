@@ -1,5 +1,6 @@
 package tictactoe.domain.model
 
+import tictactoe.domain.Game
 import tictactoe.domain.model.Board.Cell
 
 trait CommonOps extends EitherOps {
@@ -17,8 +18,8 @@ trait CommonOps extends EitherOps {
     }
   }
 
-  implicit class GameOps(game: StandardGame) {
-    def withMoves(moves: Seq[Cell]): StandardGame =
+  implicit class GameOps(game: Game) {
+    def withMoves(moves: Seq[Cell]): Game =
       moves.foldLeft(game) {
         case (currGame, cell) => currGame.makeMove(cell).getRight
       }

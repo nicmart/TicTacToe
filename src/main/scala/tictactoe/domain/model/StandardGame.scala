@@ -1,5 +1,6 @@
 package tictactoe.domain.model
 
+import tictactoe.domain.Game
 import tictactoe.domain.model.Board.Cell
 import tictactoe.domain.model.State.InProgress
 import tictactoe.domain.model.State.Result.{Draw, Winner}
@@ -9,7 +10,7 @@ sealed abstract case class StandardGame(board: Board, state: State) extends Game
   override def availableMoves: List[Cell] =
     if (inProgress) board.emptyCells.toList else Nil
 
-  override def makeMove(cell: Board.Cell): Either[Error, StandardGame] =
+  override def makeMove(cell: Board.Cell): Either[Error, Game] =
     for {
       currentPlayer <- checkIfGameInProgress
       _ <- checkIfLegalMove(cell)
