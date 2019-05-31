@@ -12,13 +12,21 @@ final case class GameRunner(
     playerOMoves: MovesSource
 ) {
 
-  def loop: IO[Error, Nothing] = next.flatMap(_.loop)
-
-  def next: IO[Error, GameRunner] =
+  def runGame: IO[Error, Unit] =
     for {
-      _ <- presenter.showGame(game)
+      _ <- presenter.gameIsAboutToStart(game)
+      _ <- loop.either
+      _ <- presenter.gameHasEnded(game)
+    } yield ()
+
+  private def loop: IO[Error, Nothing] = next.flatMap(_.loop)
+
+  private def next: IO[Error, GameRunner] =
+    for {
+      _ <- presenter.gameHasBeenUpdated(game)
       currentPlayer <- currentPlayer
       move <- currentPlayerMoves(currentPlayer).askMove(game)
+      _ <- presenter.playerHasChosenMove(move)
       gameNext <- makeMove(move)
       runnerNext = copy(game = gameNext)
     } yield runnerNext

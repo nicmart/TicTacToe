@@ -14,7 +14,7 @@ class GameRunnerTest extends CommonTest {
           val program = for {
             runnerWithHistory <- runnerWithHistory(game, moves)
             (runner, history) = runnerWithHistory
-            _ <- runner.loop.either
+            _ <- runner.runGame
             games <- history.get
           } yield games
 
@@ -36,33 +36,40 @@ class GameRunnerTest extends CommonTest {
     val player2Moves = groupedMoves.flatMap(_.drop(1).headOption)
 
     for {
-      player1Moves <- playerMoves(player1Moves)
-      player2Moves <- playerMoves(player2Moves)
+      player1Moves <- playerSource(player1Moves)
+      player2Moves <- playerSource(player2Moves)
       presenterAndHistory <- buildPresenter
       (presenter, historyRef) = presenterAndHistory
       runner = GameRunner(game, presenter, player1Moves, player2Moves)
     } yield (runner, historyRef)
   }
 
-  private def playerMoves(moves: List[Cell]): IO[model.Error, MovesSource] =
-    Ref.make(moves).map { ref =>
-      MovesSource { _ =>
-        for {
-          remainingMoves <- ref.get
-          move <- remainingMoves match {
-            case Nil          => IO.fail(model.Error.UnexpectedError("No more moves"))
-            case head :: tail => ref.set(tail).map(_ => head)
-          }
-        } yield move
-      }
-    }
+  private def playerSource(moves: List[Cell]): IO[model.Error, MovesSource] =
+    Ref.make(moves).map(FakeMovesSource)
 
-  val buildPresenter: IO[model.Error, (GamePresenter, Ref[List[Game]])] =
+  private val buildPresenter: IO[model.Error, (GamePresenter, Ref[List[Game]])] =
     Ref.make[List[Game]](Nil).map { ref =>
-      (GamePresenter { game =>
-        ref.update(games => games :+ game).unit
-      }, ref)
+      (FakeGamePresenter(ref), ref)
     }
 
   lazy val runtime = new DefaultRuntime {}
+}
+
+case class FakeMovesSource(movesRef: Ref[List[Cell]]) extends MovesSource {
+  override def askMove(game: Game): IO[model.Error, Cell] =
+    for {
+      remainingMoves <- movesRef.get
+      move <- remainingMoves match {
+        case Nil          => IO.fail(model.Error.UnexpectedError("No more moves"))
+        case head :: tail => movesRef.set(tail).map(_ => head)
+      }
+    } yield move
+}
+
+case class FakeGamePresenter(historyRef: Ref[List[Game]]) extends GamePresenter {
+  override def playerHasChosenMove(move: Cell): IO[model.Error, Unit] = IO.unit
+  override def gameHasBeenUpdated(game: Game): IO[model.Error, Unit] =
+    historyRef.update(games => games :+ game).unit
+  override def gameHasEnded(game: Game): IO[model.Error, Unit] = IO.unit
+  override def gameIsAboutToStart(game: Game): IO[model.Error, Unit] = IO.unit
 }
