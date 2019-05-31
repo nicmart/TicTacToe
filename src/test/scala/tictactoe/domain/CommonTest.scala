@@ -1,8 +1,8 @@
-package tictactoe.domain.game.model
+package tictactoe.domain
 
 import org.scalacheck.Shrink
-import org.scalatest.{FreeSpec, Matchers}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.{FreeSpec, Matchers}
 
 trait CommonTest
     extends FreeSpec

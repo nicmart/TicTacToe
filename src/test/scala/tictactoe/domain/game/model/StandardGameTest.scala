@@ -1,6 +1,7 @@
 package tictactoe.domain.game.model
 
-import ScalaCheckDomainContext._
+import tictactoe.domain.CommonTest
+import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.State.Result.Winner
 
 class StandardGameTest extends CommonTest {
@@ -18,7 +19,6 @@ class StandardGameTest extends CommonTest {
         case (game, cell) =>
           val gameNext = game.makeMove(cell).getRight
           gameNext.board.markAt(cell) shouldBe Some(game.unsafeCurrentPlayer.mark)
-
       }
     }
 

@@ -1,9 +1,10 @@
-package tictactoe.domain.game.model
+package tictactoe.domain
 
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
-import Arbitrary.arbitrary
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
+import tictactoe.domain.game.model._
 
 object ScalaCheckDomainContext extends EitherOps with CommonOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
@@ -14,7 +15,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
     arbBoardSize.arbitrary.map(Board.emptyBoard)
 
   def genNewGameOfSize(size: Int): Gen[Game] =
-    arbitrary[Player].map(player => StandardGame.newGame(Board.Size(size), player))
+    Gen.const(StandardGame.newGame(Board.Size(size)))
 
   val genNewGame: Gen[Game] =
     arbitrary[Board.Size].flatMap(size => genNewGameOfSize(size.value))
@@ -34,6 +35,15 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
       emptyGame <- genNewGameOfSize(size)
       move <- genAvailableMove(emptyGame)
     } yield (emptyGame, move)
+
+  def genSequenceOfLegalMoves(game: Game): Gen[List[Cell]] =
+    if (game.inProgress) {
+      for {
+        move <- genAvailableMove(game)
+        nextGame = game.makeMove(move).getRight
+        nextMoves <- genSequenceOfLegalMoves(nextGame)
+      } yield move :: nextMoves
+    } else Gen.const(Nil)
 
   def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[List[Cell]] =
     for {

@@ -9,4 +9,5 @@ object Error {
   case class CellOccupied(game: Game, move: Cell) extends Error
   case object InvalidXCoordinate extends Error
   case object InvalidYCoordinate extends Error
+  case class UnexpectedError(reason: String) extends Error
 }

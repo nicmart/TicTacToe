@@ -1,4 +1,4 @@
-package tictactoe.domain.game.model
+package tictactoe.domain
 
 trait EitherOps {
   case class RightOnLeftException[E](error: E) extends Throwable {

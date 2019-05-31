@@ -41,6 +41,7 @@ sealed abstract case class StandardGame(board: Board, state: State) extends Game
 }
 
 object StandardGame {
-  def newGame(size: Board.Size, currentPlayer: Player): StandardGame =
-    new StandardGame(Board.emptyBoard(size), State.InProgress(currentPlayer)) {}
+  // Without loss of generality we can assume that player one is always X
+  def newGame(size: Board.Size): StandardGame =
+    new StandardGame(Board.emptyBoard(size), State.InProgress(Player(Mark.X))) {}
 }

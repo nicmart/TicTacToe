@@ -1,7 +1,8 @@
 package tictactoe.domain.game.model
 
 import org.scalacheck.Arbitrary.arbitrary
-import tictactoe.domain.game.model.ScalaCheckDomainContext._
+import tictactoe.domain.CommonTest
+import tictactoe.domain.ScalaCheckDomainContext._
 
 class BoardTest extends CommonTest {
   "A board" - {
