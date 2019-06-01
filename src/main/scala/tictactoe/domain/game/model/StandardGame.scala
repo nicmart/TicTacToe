@@ -33,11 +33,14 @@ sealed abstract case class StandardGame(board: Board, state: State) extends Game
     else None
 
   private def nextGameState(board: Board, currentPlayer: Player): State =
-    board.allLines.flatMap(winner) match {
-      case Nil if board.emptyCells.nonEmpty => State.InProgress(currentPlayer.switch)
-      case Nil                              => State.Finished(Draw)
-      case _                                => State.Finished(Winner(currentPlayer))
+    hasWinner(board) match {
+      case true                               => State.Finished(Winner(currentPlayer))
+      case false if board.emptyCells.nonEmpty => State.InProgress(currentPlayer.switch)
+      case false                              => State.Finished(Draw)
     }
+
+  private def hasWinner(board: Board): Boolean =
+    board.allLines.flatMap(winner).nonEmpty
 }
 
 object StandardGame {
