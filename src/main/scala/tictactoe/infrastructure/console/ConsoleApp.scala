@@ -7,7 +7,7 @@ object ConsoleApp extends App {
   val runner: GameRunner =
     GameRunner(
       StandardGame.newGame(Board.Size(3)),
-      new ConsoleGamePresenter,
+      new ConsoleGameEvents,
       new ConsoleMovesSource,
       new ConsoleMovesSource
     )

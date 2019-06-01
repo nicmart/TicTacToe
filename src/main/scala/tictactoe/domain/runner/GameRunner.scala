@@ -7,7 +7,7 @@ import tictactoe.domain.game.model.{Error, Mark, Player}
 
 final case class GameRunner(
     game: Game,
-    presenter: GamePresenter,
+    presenter: GameEvents,
     playerXMoves: MovesSource,
     playerOMoves: MovesSource
 ) {

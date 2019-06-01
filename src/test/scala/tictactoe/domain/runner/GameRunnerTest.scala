@@ -48,9 +48,9 @@ class GameRunnerTest extends CommonTest {
   private def playerSource(moves: List[Cell]): IO[Error, MovesSource] =
     Ref.make(moves).map(FakeMovesSource)
 
-  private val buildPresenter: IO[Error, (GamePresenter, Ref[List[Game]])] =
+  private val buildPresenter: IO[Error, (GameEvents, Ref[List[Game]])] =
     Ref.make[List[Game]](Nil).map { ref =>
-      (FakeGamePresenter(ref), ref)
+      (FakeGameEvents(ref), ref)
     }
 
   lazy val runtime = new DefaultRuntime {}
@@ -67,7 +67,7 @@ case class FakeMovesSource(movesRef: Ref[List[Cell]]) extends MovesSource {
     } yield move
 }
 
-case class FakeGamePresenter(historyRef: Ref[List[Game]]) extends GamePresenter {
+case class FakeGameEvents(historyRef: Ref[List[Game]]) extends GameEvents {
   override def playerHasChosenMove(move: Cell): IO[Error, Unit] = IO.unit
   override def playerHasChosenInvalidMove(move: Cell, error: Error): IO[Error, Unit] = IO.unit
   override def gameHasBeenUpdated(game: Game): IO[Error, Unit] =

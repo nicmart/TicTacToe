@@ -3,9 +3,9 @@ package tictactoe.infrastructure.console
 import scalaz.zio.{IO, UIO, ZIO}
 import tictactoe.domain.game.model.Board
 import tictactoe.domain.game.{Game, model}
-import tictactoe.domain.runner.GamePresenter
+import tictactoe.domain.runner.GameEvents
 
-final class ConsoleGamePresenter extends GamePresenter {
+final class ConsoleGameEvents extends GameEvents {
   override def playerHasChosenMove(move: Board.Cell): IO[model.Error, Unit] =
     putStrLn(s"You chose $move")
 
