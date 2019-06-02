@@ -1,9 +1,11 @@
 package tictactoe.domain.game.model
 
 sealed trait Mark {
-  def switch: Mark = this match {
-    case Mark.X => Mark.O
-    case Mark.O => Mark.X
+  def switch: Mark = fold(Mark.O, Mark.X)
+
+  def fold[T](ifX: => T, ifO: => T): T = this match {
+    case Mark.X => ifX
+    case Mark.O => ifO
   }
 }
 object Mark {
