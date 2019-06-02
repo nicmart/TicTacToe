@@ -1,10 +1,9 @@
-package tictactoe.infrastructure
+package tictactoe.infrastructure.console
 
 import org.scalacheck.Gen
 import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Mark
-import tictactoe.infrastructure.console.BoardPresenter
 
 class BoardPresenterTest extends CommonTest {
   "The Board Presenter" - {
