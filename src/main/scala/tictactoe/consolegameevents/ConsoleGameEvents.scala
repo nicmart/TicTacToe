@@ -1,4 +1,4 @@
-package tictactoe.console
+package tictactoe.consolegameevents
 
 import scalaz.zio.{IO, UIO, ZIO}
 import tictactoe.domain.game.model.State.Finished
@@ -6,10 +6,11 @@ import tictactoe.domain.game.model.State.Result.{Draw, Winner}
 import tictactoe.domain.game.model.{Board, Player}
 import tictactoe.domain.game.{Game, model}
 import tictactoe.domain.runner.GameEvents
+import tictactoe.stringpresenter.BoardStringPresenter
 
 final class ConsoleGameEvents(
-    boardPresenter: BoardPresenter,
-    boardView: BoardView,
+    boardPresenter: BoardStringPresenter,
+    boardView: BoardStringView,
     gameStrings: ConsoleGameStrings
 ) extends GameEvents {
 

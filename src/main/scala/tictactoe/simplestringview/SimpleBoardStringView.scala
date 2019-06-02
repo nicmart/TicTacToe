@@ -1,10 +1,13 @@
-package tictactoe.console
+package tictactoe.simplestringview
 
 import java.text.BreakIterator
 
-class SimpleBoardView extends BoardView {
+import tictactoe.consolegameevents.BoardStringView
+import tictactoe.stringpresenter.BoardStringViewModel
+
+class SimpleBoardStringView extends BoardStringView {
   val cellSize = 3
-  override def render(board: BoardViewModel): String =
+  override def render(board: BoardStringViewModel): String =
     board.rows.map(renderLine).mkString(dividerHorizontalLine(board.size))
 
   private def renderLine(line: List[String]): String =

@@ -1,4 +1,4 @@
-package tictactoe.console
+package tictactoe.consolemovessource
 
 import scalaz.zio.{IO, ZIO}
 import tictactoe.domain.game.model.Board

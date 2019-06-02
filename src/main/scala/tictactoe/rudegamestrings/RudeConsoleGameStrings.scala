@@ -1,4 +1,6 @@
-package tictactoe.console
+package tictactoe.rudegamestrings
+
+import tictactoe.consolegameevents.ConsoleGameStrings
 
 object RudeConsoleGameStrings extends ConsoleGameStrings {
 

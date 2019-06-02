@@ -1,11 +1,13 @@
-package tictactoe.console
+package tictactoe.consolegameevents
 
 import tictactoe.domain.CommonTest
+import tictactoe.simplestringview.SimpleBoardStringView
+import tictactoe.stringpresenter.BoardStringViewModel
 
-class SimpleBoardViewTest extends CommonTest {
+class SimpleBoardStringViewTest extends CommonTest {
   "A SimpleBoardView" - {
     "should render an empty board" in {
-      val boardViewModel = BoardViewModel.empty(3, "?")
+      val boardViewModel = BoardStringViewModel.empty(3, "?")
       val renderedBoard = view.render(boardViewModel)
       val expectedRenderedBoard =
         """> ? | ? | ? 
@@ -19,5 +21,5 @@ class SimpleBoardViewTest extends CommonTest {
     }
   }
 
-  lazy val view = new SimpleBoardView
+  lazy val view = new SimpleBoardStringView
 }

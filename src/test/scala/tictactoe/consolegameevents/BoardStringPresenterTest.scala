@@ -1,11 +1,12 @@
-package tictactoe.console
+package tictactoe.consolegameevents
 
 import org.scalacheck.Gen
 import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Mark
+import tictactoe.stringpresenter.BoardStringPresenter
 
-class BoardPresenterTest extends CommonTest {
+class BoardStringPresenterTest extends CommonTest {
   "The Board Presenter" - {
     "should convert any board to a boardViewModel" in {
       forAll(genEmptyBoard) { emptyBoard =>
@@ -35,5 +36,5 @@ class BoardPresenterTest extends CommonTest {
     }
   }
 
-  lazy val presenter = new BoardPresenter(BoardPresenter.defaultMarkRendering)
+  lazy val presenter = new BoardStringPresenter(BoardStringPresenter.defaultMarkRendering)
 }

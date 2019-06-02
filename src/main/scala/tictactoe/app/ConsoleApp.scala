@@ -1,17 +1,21 @@
 package tictactoe.app
 
 import scalaz.zio.App
-import tictactoe.console._
+import tictactoe.consolegameevents._
+import tictactoe.consolemovessource.ConsoleMovesSource
 import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.GameRunner
+import tictactoe.rudegamestrings.RudeConsoleGameStrings
+import tictactoe.simplestringview.SimpleBoardStringView
+import tictactoe.stringpresenter.BoardStringPresenter
 
 object ConsoleApp extends App {
   val runner: GameRunner =
     GameRunner(
       StandardGame.newGame(Board.Size(3)),
       new ConsoleGameEvents(
-        new BoardPresenter(_.fold("🖕", "🧠")),
-        new SimpleBoardView,
+        new BoardStringPresenter(_.fold("🖕", "🧠")),
+        new SimpleBoardStringView,
         RudeConsoleGameStrings
       ),
       new ConsoleMovesSource,
