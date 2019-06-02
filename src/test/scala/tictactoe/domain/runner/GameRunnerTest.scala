@@ -5,7 +5,7 @@ import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.{Game, model}
-import tictactoe.domain.game.model.Error
+import tictactoe.domain.game.model.{Error, Player}
 
 class GameRunnerTest extends CommonTest {
   "A Game Runner" - {
@@ -68,6 +68,7 @@ case class FakeMovesSource(movesRef: Ref[List[Cell]]) extends MovesSource {
 }
 
 case class FakeGameEvents(historyRef: Ref[List[Game]]) extends GameEvents {
+  override def playerHasToChooseMove(player: Player): IO[Error, Unit] = IO.unit
   override def playerHasChosenMove(move: Cell): IO[Error, Unit] = IO.unit
   override def playerHasChosenInvalidMove(move: Cell, error: Error): IO[Error, Unit] = IO.unit
   override def gameHasBeenUpdated(game: Game): IO[Error, Unit] =

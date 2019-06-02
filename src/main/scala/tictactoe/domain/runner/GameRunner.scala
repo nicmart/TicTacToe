@@ -30,19 +30,25 @@ final case class GameRunner(
       _ <- presenter.gameHasBeenUpdated(game)
       currentPlayer <- currentPlayer
       currentPlayerMoves = currentPlayerMovesSource(currentPlayer)
-      gameNext <- askMoveUntilValidAndMakeMove(currentPlayerMoves)
+      gameNext <- askMoveUntilValidAndMakeMove(currentPlayer, currentPlayerMoves)
       runnerNext = copy(game = gameNext)
     } yield runnerNext
 
-  private def askMoveUntilValidAndMakeMove(moves: MovesSource): IO[Error, Game] =
+  private def askMoveUntilValidAndMakeMove(player: Player, moves: MovesSource): IO[Error, Game] =
     for {
+      _ <- presenter.playerHasToChooseMove(player)
       move <- moves.askMove(game)
       _ <- presenter.playerHasChosenMove(move)
-      gameNext <- makeMove(move).catchAll(catchInvalidMove(move, moves))
+      gameNext <- makeMove(move).catchAll(catchInvalidMove(player, move, moves))
     } yield gameNext
 
-  private def catchInvalidMove(move: Cell, moves: MovesSource)(error: Error): IO[Error, Game] =
-    presenter.playerHasChosenInvalidMove(move, error) andThen askMoveUntilValidAndMakeMove(moves)
+  private def catchInvalidMove(player: Player, move: Cell, moves: MovesSource)(
+      error: Error
+  ): IO[Error, Game] =
+    presenter.playerHasChosenInvalidMove(move, error) andThen askMoveUntilValidAndMakeMove(
+      player,
+      moves
+    )
 
   private def currentPlayer: IO[Error, Player] = IO.fromEither(game.currentPlayer)
 
