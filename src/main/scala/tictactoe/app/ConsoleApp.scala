@@ -12,7 +12,7 @@ import tictactoe.stringpresenter.BoardStringPresenter
 object ConsoleApp extends App {
   val runner: GameRunner =
     GameRunner(
-      StandardGame.newGame(Board.Size(3)),
+      StandardGame.newGame(Board.Size(5)),
       new ConsoleGameEvents(
         new BoardStringPresenter(_.fold("🖕", "🧠")),
         new BeautifulBoardStringView(3),

@@ -20,7 +20,7 @@ class ConsoleMovesSource extends MovesSource {
     } yield move
 
   private def readMove: IO[model.Error, String] =
-    ZIO.effect(StdIn.readLine()).mapError(toModelError)
+    ZIO.effect(StdIn.readLine().trim).mapError(toModelError)
 
   private def toModelError(throwable: Throwable): model.Error =
     UnexpectedError(throwable.getMessage)
