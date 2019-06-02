@@ -32,4 +32,15 @@ trait CommonOps extends EitherOps {
 
     def unsafeCurrentPlayer: Player = game.currentPlayer.getRight
   }
+
+  implicit class Moves(moves: List[Cell]) {
+    def intersperseWithInvalidAndErrors: List[Either[Error.UnexpectedError, Cell]] = moves.flatMap(
+      legalMove =>
+        List(
+          Right(legalMove),
+          Left(Error.UnexpectedError(s"Generated an error between moves $legalMove")),
+          Right(legalMove)
+        )
+    )
+  }
 }

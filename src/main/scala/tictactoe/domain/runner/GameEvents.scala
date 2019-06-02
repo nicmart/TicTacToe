@@ -7,8 +7,8 @@ import tictactoe.domain.game.model.{Board, Error, Player}
 trait GameEvents {
   def playerHasToChooseMove(player: Player): IO[Error, Unit]
   def gameIsAboutToStart(game: Game): IO[Error, Unit]
-  def playerHasChosenMove(move: Board.Cell): IO[Error, Unit]
-  def playerHasChosenInvalidMove(move: Board.Cell, error: Error): IO[Error, Unit]
+  def playerHasChosenInvalidMove(error: Error): IO[Error, Unit]
+  def playerHasChosenIllegalMove(move: Board.Cell, error: Error): IO[Error, Unit]
   def gameHasBeenUpdated(game: Game): IO[Error, Unit]
   def gameHasEnded(game: Game): IO[Error, Unit]
 }
