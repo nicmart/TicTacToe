@@ -8,7 +8,7 @@ import tictactoe.domain.game.model._
 
 object ScalaCheckDomainContext extends EitherOps with CommonOps {
   implicit val arbMark: Arbitrary[Mark] = Arbitrary(Gen.oneOf(Mark.X, Mark.O))
-  implicit val arbPlayer: Arbitrary[Player] = Arbitrary(arbitrary[Mark].map(Player.apply))
+  implicit val arbPlayer: Arbitrary[Player] = Arbitrary(Gen.oneOf(Player.Player1, Player.Player2))
   implicit val arbBoardSize: Arbitrary[Board.Size] = Arbitrary(Gen.chooseNum(1, 2).map(Board.Size))
 
   val genEmptyBoard: Gen[Board] =

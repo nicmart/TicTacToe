@@ -3,13 +3,13 @@ package tictactoe.domain.runner
 import scalaz.zio.IO
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
-import tictactoe.domain.game.model.{Error, Mark, Player}
+import tictactoe.domain.game.model.{Error, Player}
 
 final case class GameRunner(
     game: Game,
     presenter: GameEvents,
-    playerXMoves: MovesSource,
-    playerOMoves: MovesSource
+    player1Moves: MovesSource,
+    player2Moves: MovesSource
 ) {
 
   def runGame: IO[Error, Unit] =
@@ -55,8 +55,5 @@ final case class GameRunner(
   private def makeMove(move: Cell): IO[Error, Game] = IO.fromEither(game.makeMove(move))
 
   private def currentPlayerMovesSource(currentPlayer: Player): MovesSource =
-    currentPlayer.mark match {
-      case Mark.X => playerXMoves
-      case Mark.O => playerOMoves
-    }
+    currentPlayer.fold(player1Moves, player2Moves)
 }

@@ -3,7 +3,7 @@ package tictactoe.infrastructure.console
 import scalaz.zio.{IO, UIO, ZIO}
 import tictactoe.domain.game.model.State.Finished
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
-import tictactoe.domain.game.model.{Board, Mark, Player}
+import tictactoe.domain.game.model.{Board, Player}
 import tictactoe.domain.game.{Game, model}
 import tictactoe.domain.runner.GameEvents
 
@@ -40,10 +40,7 @@ final class ConsoleGameEvents(boardPresenter: BoardPresenter, boardView: BoardVi
   private def putStrLn(line: String): UIO[Unit] =
     ZIO.effectTotal(println(line))
 
-  private def playerName(player: Player): String = player.mark match {
-    case Mark.X => "Player 1"
-    case Mark.O => "Player 2"
-  }
+  private def playerName(player: Player): String = player.fold("Player 1", "Player 2")
 
   private def renderGame(game: Game): String = boardView.render(boardPresenter.render(game.board))
 }
