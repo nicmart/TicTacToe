@@ -5,10 +5,8 @@ import tictactoe.domain.game.model.Board.Cell
 
 class BoardPresenter {
   def render(board: Board): BoardViewModel =
-    BoardViewModel(
-      board.size.value,
-      board.horizontalLines.map(renderLine(board.size.value))
-    )
+    BoardViewModel(board.horizontalLines.map(renderLine(board.size.value)))
+      .getOrElse(BoardViewModel.empty(board.size.value, "?"))
 
   private def renderLine(boardSize: Int)(line: Line.Horizontal): List[String] =
     line.cells.zip(line.cellsStates).map((renderCell(boardSize) _).tupled)
