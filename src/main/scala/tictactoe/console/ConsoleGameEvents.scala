@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 import scalaz.zio.{IO, UIO, ZIO}
 import tictactoe.domain.game.model.State.Finished

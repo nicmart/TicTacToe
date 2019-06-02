@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 object RudeConsoleGameStrings extends ConsoleGameStrings {
 

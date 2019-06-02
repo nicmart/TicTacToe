@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 import org.scalacheck.Gen
 import tictactoe.domain.CommonTest
@@ -35,5 +35,5 @@ class BoardPresenterTest extends CommonTest {
     }
   }
 
-  lazy val presenter = new BoardPresenter
+  lazy val presenter = new BoardPresenter(BoardPresenter.defaultMarkRendering)
 }

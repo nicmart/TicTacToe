@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 import tictactoe.domain.CommonTest
 

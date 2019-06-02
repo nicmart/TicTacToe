@@ -1,5 +1,7 @@
-package tictactoe.infrastructure.console
-import scalaz.zio._
+package tictactoe.app
+
+import scalaz.zio.App
+import tictactoe.console._
 import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.GameRunner
 

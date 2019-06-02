@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 trait ConsoleGameStrings {
   def invalidMove: String

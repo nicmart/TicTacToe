@@ -1,6 +1,6 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
-import tictactoe.infrastructure.console.BoardViewModel.Error.InvalidRows
+import tictactoe.console.BoardViewModel.Error.InvalidRows
 
 sealed abstract case class BoardViewModel(size: Int, rows: List[List[String]])
 

@@ -1,4 +1,4 @@
-package tictactoe.infrastructure.console
+package tictactoe.console
 
 import tictactoe.domain.game.model.{Board, Line, Mark}
 import tictactoe.domain.game.model.Board.Cell
@@ -21,6 +21,6 @@ class BoardPresenter(renderMark: Mark => String) {
 }
 
 object BoardPresenter {
-  def defaultMarkRendering(mark: Mark): String = mark.fold("X", "Y")
+  def defaultMarkRendering(mark: Mark): String = mark.fold("X", "O")
   def coolMarkRendering(mark: Mark): String = mark.fold("🍆", "🍅")
 }
