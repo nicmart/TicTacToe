@@ -1,12 +1,12 @@
 package tictactoe.app
 
 import scalaz.zio.App
+import tictactoe.beautifulstringview.BeautifulBoardStringView
 import tictactoe.consolegameevents._
 import tictactoe.consolemovessource.ConsoleMovesSource
 import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.GameRunner
 import tictactoe.rudegamestrings.RudeConsoleGameStrings
-import tictactoe.simplestringview.SimpleBoardStringView
 import tictactoe.stringpresenter.BoardStringPresenter
 
 object ConsoleApp extends App {
@@ -15,7 +15,7 @@ object ConsoleApp extends App {
       StandardGame.newGame(Board.Size(3)),
       new ConsoleGameEvents(
         new BoardStringPresenter(_.fold("🖕", "🧠")),
-        new SimpleBoardStringView(8),
+        new BeautifulBoardStringView(3),
         RudeConsoleGameStrings
       ),
       new ConsoleMovesSource,

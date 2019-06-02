@@ -19,10 +19,10 @@ final class ConsoleGameEvents(
     putStrLn(gameStrings.playerHasToChooseMove(playerName(player)), 1)
 
   override def playerHasChosenInvalidMove(error: Error): IO[Error, Unit] =
-    putStrLn(gameStrings.invalidMove)
+    putStrLn("\n" + gameStrings.invalidMove)
 
   override def playerHasChosenIllegalMove(move: Cell, error: Error): IO[Error, Unit] =
-    putStrLn(gameStrings.invalidMove)
+    putStrLn("\n" + gameStrings.invalidMove)
 
   override def gameHasBeenUpdated(game: Game): IO[Error, Unit] =
     putStrLn(renderGame(game), 2)

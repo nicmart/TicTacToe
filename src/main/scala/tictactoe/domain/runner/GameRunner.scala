@@ -30,24 +30,29 @@ final case class GameRunner(
       _ <- presenter.gameHasBeenUpdated(game)
       currentPlayer <- currentPlayer
       currentPlayerMoves = currentPlayerMovesSource(currentPlayer)
-      gameNext <- askMoveUntilValidAndMakeMove(currentPlayer, currentPlayerMoves)
+      gameNext <- askMoveUntilLegalAndMakeMove(currentPlayer, currentPlayerMoves)
       runnerNext = copy(game = gameNext)
     } yield runnerNext
 
-  private def askMoveUntilValidAndMakeMove(player: Player, moves: MovesSource): IO[Error, Game] =
+  private def askMoveUntilLegalAndMakeMove(player: Player, moves: MovesSource): IO[Error, Game] =
     for {
-      _ <- presenter.playerHasToChooseMove(player)
-      move <- moves.askMove(game).catchAll(catchInvalidMove(moves))
+      move <- askMoveUntilValid(player, moves)
       gameNext <- makeMove(move).catchAll(catchIllegalMove(player, move, moves))
     } yield gameNext
 
-  private def catchInvalidMove(moves: MovesSource)(error: Error): IO[Error, Cell] =
-    presenter.playerHasChosenInvalidMove(error) andThen moves.askMove(game)
+  private def askMoveUntilValid(player: Player, moves: MovesSource): IO[Error, Cell] =
+    for {
+      _ <- presenter.playerHasToChooseMove(player)
+      move <- moves.askMove(game).catchAll(catchInvalidMove(player, moves))
+    } yield move
+
+  private def catchInvalidMove(player: Player, moves: MovesSource)(error: Error): IO[Error, Cell] =
+    presenter.playerHasChosenInvalidMove(error) andThen askMoveUntilValid(player, moves)
 
   private def catchIllegalMove(player: Player, move: Cell, moves: MovesSource)(
       error: Error
   ): IO[Error, Game] =
-    presenter.playerHasChosenIllegalMove(move, error) andThen askMoveUntilValidAndMakeMove(
+    presenter.playerHasChosenIllegalMove(move, error) andThen askMoveUntilLegalAndMakeMove(
       player,
       moves
     )
