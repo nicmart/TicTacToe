@@ -95,6 +95,12 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
       y <- genValidCellCoordinate(size)
     } yield Board.Cell(x, y)
 
+  def genValidCells(size: Int): Gen[Set[Board.Cell]] =
+    Gen
+      .choose(0, size)
+      .flatMap(numberOfCells => Gen.listOfN(numberOfCells, genValidCell(size)))
+      .map(_.toSet)
+
   def genValidCellCoordinate(size: Int): Gen[Int] =
     Gen.choose(0, size - 1)
 
