@@ -8,7 +8,7 @@ object ConsoleApp extends App {
     GameRunner(
       StandardGame.newGame(Board.Size(3)),
       new ConsoleGameEvents(
-        new BoardPresenter,
+        new BoardPresenter(BoardPresenter.coolMarkRendering),
         new SimpleBoardView
       ),
       new ConsoleMovesSource,
