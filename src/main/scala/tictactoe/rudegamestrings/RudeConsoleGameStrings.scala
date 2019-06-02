@@ -8,18 +8,18 @@ object RudeConsoleGameStrings extends ConsoleGameStrings {
     "It looks like you don't even know the rules of the game. That was an invalid move, you moron."
 
   override def playerHasToChooseMove(player: String): String =
-    s"$player, it's your turn, please move for God's sake\n"
+    s"$player, it's your turn, please move for God's sake!"
 
   override def gameEndedWithWinner(player: String): String =
-    s"$player won, just because he's been lucky.\n"
+    s"$player won, but just because he was lucky."
 
   override def gameEndedWithDraw: String =
-    s"That was a very boring draw. Thanks for wasting my time.\n"
+    s"That was a very boring draw. Thanks for wasting my time."
 
   override def unexpectedState: String =
     "This case should never happen, I am giving up."
 
   override def gameIsAboutToStart: String =
-    "Welcome to the most over-engineered TicTacToe ever!!!\n\n"
+    "Welcome to the most over-engineered TicTacToe ever!!!"
 
 }

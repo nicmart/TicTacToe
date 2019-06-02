@@ -23,5 +23,5 @@ class BeatifulBoardStringViewTest extends CommonTest {
     }
   }
 
-  lazy val view = new BeautifulBoardStringView
+  lazy val view = new BeautifulBoardStringView(3)
 }
