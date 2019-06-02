@@ -9,7 +9,14 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
       new Board(size, cells.updated(cell.y, cells(cell.y).updated(cell.x, Some(mark)))) {}
     }
 
-  def markAt(cell: Cell): Option[Mark] = cells(cell.y)(cell.x)
+  def validateCell(cell: Cell): Either[Error, Cell] =
+    for {
+      _ <- validateCoordinate(cell.x, Error.InvalidXCoordinate)
+      _ <- validateCoordinate(cell.y, Error.InvalidYCoordinate)
+    } yield cell
+
+  def markAt(cell: Cell): Option[Mark] =
+    validateCell(cell).toOption.flatMap(_ => cells(cell.y)(cell.x))
 
   def emptyCells: Seq[Cell] =
     for {
@@ -38,12 +45,6 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
 
   def allLines: List[Line] =
     firstDiagonalLine :: secondDiagonalLine :: horizontalLines ::: verticalLines
-
-  private def validateCell(cell: Cell): Either[Error, Cell] =
-    for {
-      _ <- validateCoordinate(cell.x, Error.InvalidXCoordinate)
-      _ <- validateCoordinate(cell.y, Error.InvalidYCoordinate)
-    } yield cell
 
   private def validateCoordinate(coordinate: Int, error: Error): Either[Error, Int] =
     Either.cond(0 <= coordinate && coordinate < size.value, coordinate, error)

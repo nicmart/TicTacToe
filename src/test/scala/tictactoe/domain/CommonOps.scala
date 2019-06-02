@@ -39,7 +39,8 @@ trait CommonOps extends EitherOps {
         List(
           Right(legalMove),
           Left(Error.UnexpectedError(s"Generated an error between moves $legalMove")),
-          Right(legalMove)
+          Right(legalMove),
+          Right(Cell(-1, 1))
         )
     )
   }

@@ -25,7 +25,10 @@ sealed abstract case class StandardGame(board: Board, state: State) extends Game
     }
 
   private def checkIfLegalMove(cell: Cell): Either[Error, Unit] =
-    Either.cond(board.markAt(cell).isEmpty, (), Error.CellOccupied(this, cell))
+    for {
+      _ <- board.validateCell(cell)
+      _ <- Either.cond(board.markAt(cell).isEmpty, (), Error.CellOccupied(this, cell))
+    } yield ()
 
   private def winner(line: Line): Option[Mark] =
     if (line.cellsStates.forall(state => state.contains(Mark.O))) Some(Mark.O)
