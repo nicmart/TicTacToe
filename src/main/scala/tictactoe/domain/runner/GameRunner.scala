@@ -7,17 +7,17 @@ import tictactoe.domain.game.model.{Error, Player}
 
 final case class GameRunner(
     game: Game,
-    presenter: GameEvents,
+    events: GameEvents,
     player1Moves: MovesSource,
     player2Moves: MovesSource
 ) {
 
   def runGame: IO[Error, Unit] =
     for {
-      _ <- presenter.gameIsAboutToStart(game)
+      _ <- events.gameIsAboutToStart(game)
       lastGame <- loop
-      _ <- presenter.gameHasBeenUpdated(lastGame)
-      _ <- presenter.gameHasEnded(lastGame)
+      _ <- events.gameHasBeenUpdated(lastGame)
+      _ <- events.gameHasEnded(lastGame)
     } yield ()
 
   private def loop: IO[Error, Game] = next.flatMap { nextRunner =>
@@ -27,7 +27,7 @@ final case class GameRunner(
 
   private def next: IO[Error, GameRunner] =
     for {
-      _ <- presenter.gameHasBeenUpdated(game)
+      _ <- events.gameHasBeenUpdated(game)
       currentPlayer <- currentPlayer
       currentPlayerMoves = currentPlayerMovesSource(currentPlayer)
       gameNext <- askMoveUntilLegalAndMakeMove(currentPlayer, currentPlayerMoves)
@@ -42,17 +42,17 @@ final case class GameRunner(
 
   private def askMoveUntilValid(player: Player, moves: MovesSource): IO[Error, Cell] =
     for {
-      _ <- presenter.playerHasToChooseMove(player)
+      _ <- events.playerHasToChooseMove(player)
       move <- moves.askMove(game).catchAll(catchInvalidMove(player, moves))
     } yield move
 
   private def catchInvalidMove(player: Player, moves: MovesSource)(error: Error): IO[Error, Cell] =
-    presenter.playerHasChosenInvalidMove(error) andThen askMoveUntilValid(player, moves)
+    events.playerHasChosenInvalidMove(error) andThen askMoveUntilValid(player, moves)
 
   private def catchIllegalMove(player: Player, move: Cell, moves: MovesSource)(
       error: Error
   ): IO[Error, Game] =
-    presenter.playerHasChosenIllegalMove(move, error) andThen askMoveUntilLegalAndMakeMove(
+    events.playerHasChosenIllegalMove(move, error) andThen askMoveUntilLegalAndMakeMove(
       player,
       moves
     )
