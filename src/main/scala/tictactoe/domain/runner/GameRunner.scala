@@ -15,17 +15,17 @@ final case class GameRunner(
   def runGame: IO[Error, Unit] =
     for {
       _ <- events.gameIsAboutToStart(game)
-      lastGame <- loop
+      lastGame <- playUntilEnd
       _ <- events.gameHasBeenUpdated(lastGame)
       _ <- events.gameHasEnded(lastGame)
     } yield ()
 
-  private def loop: IO[Error, Game] = next.flatMap { nextRunner =>
-    if (nextRunner.game.inProgress) nextRunner.loop
+  private def playUntilEnd: IO[Error, Game] = playSingleTurn.flatMap { nextRunner =>
+    if (nextRunner.game.inProgress) nextRunner.playUntilEnd
     else IO.succeed(nextRunner.game)
   }
 
-  private def next: IO[Error, GameRunner] =
+  private def playSingleTurn: IO[Error, GameRunner] =
     for {
       _ <- events.gameHasBeenUpdated(game)
       currentPlayer <- currentPlayer
