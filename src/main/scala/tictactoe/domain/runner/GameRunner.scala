@@ -1,66 +1,58 @@
 package tictactoe.domain.runner
 
-import scalaz.zio.IO
+import scalaz.zio.ZIO
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Player}
 
 final case class GameRunner(
-    game: Game,
     events: GameEvents,
     player1Moves: MovesSource,
     player2Moves: MovesSource
 ) {
 
-  def runGame: IO[Error, Unit] =
+  def runGame: ZIO[StateRef, Error, Unit] =
     for {
-      _ <- events.gameIsAboutToStart(game)
-      lastGame <- playUntilEnd
-      _ <- events.gameHasBeenUpdated(lastGame)
-      _ <- events.gameHasEnded(lastGame)
+      _ <- events.gameIsAboutToStart
+      _ <- playUntilEnd
+      _ <- events.gameHasEnded
     } yield ()
 
-  private def playUntilEnd: IO[Error, Game] = playSingleTurn.flatMap { nextRunner =>
-    if (nextRunner.game.inProgress) nextRunner.playUntilEnd
-    else IO.succeed(nextRunner.game)
-  }
-
-  private def playSingleTurn: IO[Error, GameRunner] =
+  private def playUntilEnd: ZIO[StateRef, Error, Unit] =
     for {
-      _ <- events.gameHasBeenUpdated(game)
-      currentPlayer <- currentPlayer
-      currentPlayerMoves = currentPlayerMovesSource(currentPlayer)
-      gameNext <- askMoveUntilLegalAndMakeMove(currentPlayer, currentPlayerMoves)
-      runnerNext = copy(game = gameNext)
-    } yield runnerNext
+      _ <- playSingleTurn
+      game <- currentGame
+      _ <- if (game.inProgress) playUntilEnd else ZIO.unit
+    } yield ()
 
-  private def askMoveUntilLegalAndMakeMove(player: Player, moves: MovesSource): IO[Error, Game] =
+  private def playSingleTurn: ZIO[StateRef, Error, Unit] =
     for {
-      move <- askMoveUntilValid(player, moves)
-      gameNext <- makeMove(move).catchAll(catchIllegalMove(player, move, moves))
-    } yield gameNext
+      move <- askMoveUntilValid
+      _ <- makeMove(move).catchAll(catchIllegalMove(move))
+    } yield ()
 
-  private def askMoveUntilValid(player: Player, moves: MovesSource): IO[Error, Cell] =
+  private def askMoveUntilValid: ZIO[StateRef, Error, Cell] =
     for {
-      _ <- events.playerHasToChooseMove(player)
-      move <- moves.askMove(game).catchAll(catchInvalidMove(player, moves))
+      _ <- events.playerHasToChooseMove
+      player <- currentPlayer
+      move <- askMove(player).catchAll(catchInvalidMove)
     } yield move
 
-  private def catchInvalidMove(player: Player, moves: MovesSource)(error: Error): IO[Error, Cell] =
-    events.playerHasChosenInvalidMove(error) andThen askMoveUntilValid(player, moves)
+  private def catchInvalidMove(error: Error): ZIO[StateRef, Error, Cell] =
+    events.playerHasChosenInvalidMove(error) andThen askMoveUntilValid
 
-  private def catchIllegalMove(player: Player, move: Cell, moves: MovesSource)(
-      error: Error
-  ): IO[Error, Game] =
-    events.playerHasChosenIllegalMove(move, error) andThen askMoveUntilLegalAndMakeMove(
-      player,
-      moves
-    )
+  private def catchIllegalMove(move: Cell)(error: Error): ZIO[StateRef, Error, Unit] =
+    events.playerHasChosenIllegalMove(move, error) andThen playSingleTurn
 
-  private def currentPlayer: IO[Error, Player] = IO.fromEither(game.currentPlayer)
+  private def currentPlayer: ZIO[StateRef, Error, Player] =
+    currentGame.flatMap(game => ZIO.fromEither(game.currentPlayer))
+    
+  private def makeMove(move: Cell): ZIO[StateRef, Error, Game] =
+    currentGame.flatMap(game => ZIO.fromEither(game.makeMove(move)))
 
-  private def makeMove(move: Cell): IO[Error, Game] = IO.fromEither(game.makeMove(move))
+  private def askMove(currentPlayer: Player): ZIO[StateRef, Error, Cell] =
+    currentGame.flatMap(game => currentPlayer.fold(player1Moves, player2Moves).askMove(game))
 
-  private def currentPlayerMovesSource(currentPlayer: Player): MovesSource =
-    currentPlayer.fold(player1Moves, player2Moves)
+  private def currentGame: ZIO[StateRef, Error, Game] =
+    ZIO.fromFunctionM(_.gameState.get.map(_.game))
 }
