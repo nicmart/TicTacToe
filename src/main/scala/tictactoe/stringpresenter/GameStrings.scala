@@ -1,6 +1,6 @@
-package tictactoe.consolegameevents
+package tictactoe.stringpresenter
 
-trait ConsoleGameStrings {
+trait GameStrings {
   def invalidMove: String
   def playerHasToChooseMove(player: String): String
   def gameEndedWithWinner(player: String): String

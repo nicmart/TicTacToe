@@ -1,8 +1,8 @@
 package tictactoe.consolegameevents
 
-import tictactoe.beautifulstringview.BeautifulBoardStringView
 import tictactoe.domain.CommonTest
 import tictactoe.stringpresenter.BoardStringViewModel
+import tictactoe.stringview.BeautifulBoardStringView
 
 class BeatifulBoardStringViewTest extends CommonTest {
   "A BeautifulBoardView" - {

@@ -1,7 +1,7 @@
 package tictactoe.consolegameevents
 
 import tictactoe.domain.CommonTest
-import tictactoe.simplestringview.SimpleBoardStringView
+import tictactoe.stringview.SimpleBoardStringView
 import tictactoe.stringpresenter.BoardStringViewModel
 
 class SimpleBoardStringViewTest extends CommonTest {

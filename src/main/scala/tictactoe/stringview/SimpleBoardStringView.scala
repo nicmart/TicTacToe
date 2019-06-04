@@ -1,4 +1,4 @@
-package tictactoe.simplestringview
+package tictactoe.stringview
 
 import tictactoe.consolegameevents.BoardStringView
 import tictactoe.stringpresenter.BoardStringViewModel

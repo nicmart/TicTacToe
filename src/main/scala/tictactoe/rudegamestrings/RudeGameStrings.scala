@@ -1,8 +1,8 @@
 package tictactoe.rudegamestrings
 
-import tictactoe.consolegameevents.ConsoleGameStrings
+import tictactoe.stringpresenter.GameStrings
 
-object RudeConsoleGameStrings extends ConsoleGameStrings {
+object RudeGameStrings extends GameStrings {
 
   override def invalidMove: String =
     "It looks like you don't even know the rules of the game. That was an invalid move, you moron."
