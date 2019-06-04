@@ -1,7 +1,7 @@
 package tictactoe.consolegameevents
 
-import tictactoe.stringpresenter.GameRunStateViewModel
+import tictactoe.stringpresenter.GameRunStateStringViewModel
 
 trait GameRunStateStringView {
-  def render(viewModel: GameRunStateViewModel): String
+  def render(viewModel: GameRunStateStringViewModel): String
 }

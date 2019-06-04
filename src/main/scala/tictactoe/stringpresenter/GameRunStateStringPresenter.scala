@@ -1,14 +1,14 @@
 package tictactoe.stringpresenter
 
 import tictactoe.domain.runner.{GameEvent, GameRunState}
-import GameRunStateViewModel._
+import GameRunStateStringViewModel._
 import tictactoe.domain.game.model.Player
 import tictactoe.domain.game.model.State.Finished
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
 
 class GameRunStateStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings) {
 
-  def render(gameRunState: GameRunState): GameRunStateViewModel = gameRunState.event match {
+  def render(gameRunState: GameRunState): GameRunStateStringViewModel = gameRunState.event match {
 
     case GameEvent.GameIsAboutToStart =>
       Message(gameStrings.gameIsAboutToStart)
