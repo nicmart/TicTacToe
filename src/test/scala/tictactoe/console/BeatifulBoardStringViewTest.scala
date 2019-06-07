@@ -1,4 +1,4 @@
-package tictactoe.consolegameevents
+package tictactoe.console
 
 import tictactoe.domain.CommonTest
 import tictactoe.stringpresenter.BoardStringViewModel

@@ -1,7 +1,11 @@
 package tictactoe.domain.runner
 
-import scalaz.zio.UIO
+import scalaz.zio.{Ref, ZIO}
 
-trait GameStateObserver {
-  def receive(state: GameRunState): UIO[Unit]
+trait GameStateObserver[S] {
+  def receive(event: GameEvent): ZIO[ObserverState[S], Nothing, Unit]
+}
+
+trait ObserverState[S] {
+  def state: Ref[S]
 }

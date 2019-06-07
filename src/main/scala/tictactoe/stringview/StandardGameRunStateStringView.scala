@@ -1,6 +1,6 @@
 package tictactoe.stringview
 
-import tictactoe.consolegameevents.{BoardStringView, GameRunStateStringView}
+import tictactoe.console.{BoardStringView, GameRunStateStringView}
 import tictactoe.stringpresenter.GameRunStateStringViewModel
 
 class StandardGameRunStateStringView(boardView: BoardStringView) extends GameRunStateStringView {

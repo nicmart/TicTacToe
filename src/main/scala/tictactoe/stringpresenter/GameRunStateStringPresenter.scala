@@ -1,38 +1,39 @@
 package tictactoe.stringpresenter
 
-import tictactoe.domain.runner.{GameEvent, GameRunState}
-import GameRunStateStringViewModel._
 import tictactoe.domain.game.model.Player
 import tictactoe.domain.game.model.State.Finished
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
+import tictactoe.domain.runner.GameEvent
+import tictactoe.stringpresenter.GameRunStateStringViewModel._
 
 class GameRunStateStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings) {
 
-  def render(gameRunState: GameRunState): GameRunStateStringViewModel = gameRunState.event match {
+  def render(state: GameRunStateStringViewModel, event: GameEvent): GameRunStateStringViewModel =
+    event match {
 
-    case GameEvent.GameIsAboutToStart =>
-      Message(gameStrings.gameIsAboutToStart)
+      case GameEvent.GameIsAboutToStart(_) =>
+        state.setMessage(gameStrings.gameIsAboutToStart)
 
-    case GameEvent.PlayerHasToChooseMove(player) =>
-      Board(
-        boardPresenter.render(gameRunState.game.board),
-        gameStrings.playerHasToChooseMove(playerName(player))
-      )
+      case GameEvent.PlayerHasToChooseMove(game, player) =>
+        Board(
+          boardPresenter.render(game.board),
+          gameStrings.playerHasToChooseMove(playerName(player))
+        )
 
-    case GameEvent.GameHasEnded =>
-      gameRunState.game.state match {
-        case Finished(Winner(player)) =>
-          Message(gameStrings.gameEndedWithWinner(playerName(player)))
-        case Finished(Draw) => Message(gameStrings.gameEndedWithDraw)
-        case _              => Message(gameStrings.unexpectedState)
-      }
+      case GameEvent.GameHasEnded(game) =>
+        game.state match {
+          case Finished(Winner(player)) =>
+            state.setMessage(gameStrings.gameEndedWithWinner(playerName(player)))
+          case Finished(Draw) => state.setMessage(gameStrings.gameEndedWithDraw)
+          case _              => state.setMessage(gameStrings.unexpectedState)
+        }
 
-    case GameEvent.PlayerHasChosenInvalidMove(_) =>
-      Message(gameStrings.invalidMove)
+      case GameEvent.PlayerHasChosenInvalidMove(_, _) =>
+        state.setMessage(gameStrings.invalidMove)
 
-    case GameEvent.PlayerHasChosenIllegalMove(_, _) =>
-      Message(gameStrings.invalidMove)
-  }
+      case GameEvent.PlayerHasChosenIllegalMove(_, _, _) =>
+        state.setMessage(gameStrings.invalidMove)
+    }
 
   private def playerName(player: Player): String = player.fold("Player 1", "Player 2")
 }

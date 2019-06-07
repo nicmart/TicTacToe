@@ -1,16 +1,21 @@
 package tictactoe.app
 
 import scalaz.zio.{App, Ref, UIO}
-import tictactoe.consolegameevents._
-import tictactoe.consolemovessource.ConsoleMovesSource
+import tictactoe.console.{ConsoleMovesSource, _}
+import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.{Board, StandardGame}
-import tictactoe.domain.runner.{GameEvent, GameRunState, GameRunner, WithGameRunState}
+import tictactoe.domain.runner.{GameRunner, GameState, ObserverState}
 import tictactoe.rudegamestrings.RudeGameStrings
-import tictactoe.stringpresenter.{BoardStringPresenter, GameRunStateStringPresenter}
+import tictactoe.stringpresenter.GameRunStateStringViewModel.Message
+import tictactoe.stringpresenter.{
+  BoardStringPresenter,
+  GameRunStateStringPresenter,
+  GameRunStateStringViewModel
+}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameRunStateStringView}
 
 object ConsoleApp extends App {
-  val runner: GameRunner =
+  val runner: GameRunner[GameRunStateStringViewModel] =
     GameRunner(
       new ConsoleMovesSource,
       new ConsoleMovesSource,
@@ -24,13 +29,19 @@ object ConsoleApp extends App {
     )
 
   def run(args: List[String]) =
-    runner.runGame.provideSomeM(newGame).either.const(0)
+    runner.runGame.provideSomeM(initialState).either.const(0)
 
-  private def newGame: UIO[WithGameRunState] =
-    Ref.make(GameRunState(StandardGame.newGame(Board.Size(2)), GameEvent.GameIsAboutToStart)).map {
-      ref =>
-        new WithGameRunState {
-          override def gameState: Ref[GameRunState] = ref
-        }
+  private def initialGamRefe: UIO[Ref[Game]] =
+    Ref.make(StandardGame.newGame(Board.Size(2)))
+
+  private def initialViewRef: UIO[Ref[GameRunStateStringViewModel]] =
+    Ref.make(Message(""))
+
+  private def initialState: UIO[GameRunner.State[GameRunStateStringViewModel]] =
+    initialGamRefe.zipWith(initialViewRef) { (gameRef, viewRef) =>
+      new ObserverState[GameRunStateStringViewModel] with GameState {
+        override def gameState: Ref[Game] = gameRef
+        override def state: Ref[GameRunStateStringViewModel] = viewRef
+      }
     }
 }

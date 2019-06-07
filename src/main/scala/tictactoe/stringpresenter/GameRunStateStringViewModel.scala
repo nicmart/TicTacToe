@@ -1,6 +1,14 @@
 package tictactoe.stringpresenter
 
-sealed trait GameRunStateStringViewModel
+import tictactoe.stringpresenter.GameRunStateStringViewModel.{Board, Message}
+
+sealed trait GameRunStateStringViewModel {
+  def setMessage(string: String): GameRunStateStringViewModel =
+    this match {
+      case Board(_, _) => Message(string)
+      case Message(_)  => Message(string)
+    }
+}
 
 object GameRunStateStringViewModel {
   case class Board(board: BoardStringViewModel, message: String) extends GameRunStateStringViewModel

@@ -5,74 +5,66 @@ import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Player}
 import tictactoe.domain.runner.GameEvent._
+import GameRunner._
 
-final case class GameRunner(
+final case class GameRunner[S](
     player1Moves: MovesSource,
     player2Moves: MovesSource,
-    gameStateObserver: GameStateObserver
+    gameStateObserver: GameStateObserver[S]
 ) {
-
-  def runGame: ZIO[WithGameRunState, Error, Unit] =
+  def runGame: ZIO[State[S], Error, Unit] =
     for {
-      _ <- withEvent(GameIsAboutToStart)
+      _ <- notify(GameIsAboutToStart)
       _ <- playUntilEnd
-      _ <- withEvent(GameHasEnded)
+      _ <- notify(GameHasEnded)
     } yield ()
 
-  private def playUntilEnd: ZIO[WithGameRunState, Error, Unit] =
+  private def playUntilEnd: ZIO[State[S], Error, Unit] =
     for {
       _ <- playSingleTurn
       game <- currentGame
       _ <- if (game.inProgress) playUntilEnd else ZIO.unit
     } yield ()
 
-  private def playSingleTurn: ZIO[WithGameRunState, Error, Game] =
+  private def playSingleTurn: ZIO[State[S], Error, Game] =
     for {
       move <- askMoveUntilValid
       game <- tryMove(move).catchAll(catchIllegalMove(move))
       _ <- setGame(game)
     } yield game
 
-  private def askMoveUntilValid: ZIO[WithGameRunState, Error, Cell] =
+  private def askMoveUntilValid: ZIO[State[S], Error, Cell] =
     for {
       player <- currentPlayer
-      _ <- withEvent(PlayerHasToChooseMove(player))
+      _ <- notify(PlayerHasToChooseMove(_, player))
       move <- askMove(player).catchAll(catchInvalidMove)
     } yield move
 
-  private def catchInvalidMove(error: Error): ZIO[WithGameRunState, Error, Cell] =
-    withEvent(PlayerHasChosenInvalidMove(error)) *> askMoveUntilValid
+  private def catchInvalidMove(error: Error): ZIO[State[S], Error, Cell] =
+    notify(PlayerHasChosenInvalidMove(_, error)) *> askMoveUntilValid
 
-  private def catchIllegalMove(move: Cell)(error: Error): ZIO[WithGameRunState, Error, Game] =
-    withEvent(PlayerHasChosenIllegalMove(move, error)) *> playSingleTurn
+  private def catchIllegalMove(move: Cell)(error: Error): ZIO[State[S], Error, Game] =
+    notify(PlayerHasChosenIllegalMove(_, move, error)) *> playSingleTurn
 
-  private def currentPlayer: ZIO[WithGameRunState, Error, Player] =
+  private def currentPlayer: ZIO[State[S], Error, Player] =
     currentGame.flatMap(game => ZIO.fromEither(game.currentPlayer))
 
-  private def tryMove(move: Cell): ZIO[WithGameRunState, Error, Game] =
+  private def tryMove(move: Cell): ZIO[State[S], Error, Game] =
     currentGame.flatMap(game => ZIO.fromEither(game.makeMove(move)))
 
-  private def askMove(currentPlayer: Player): ZIO[WithGameRunState, Error, Cell] =
+  private def askMove(currentPlayer: Player): ZIO[State[S], Error, Cell] =
     currentGame.flatMap(game => currentPlayer.fold(player1Moves, player2Moves).askMove(game))
 
-  private def currentGame: ZIO[WithGameRunState, Nothing, Game] =
-    currentGameState.map(_.game)
-
-  private def currentGameState: ZIO[WithGameRunState, Nothing, GameRunState] =
+  private def currentGame: ZIO[State[S], Nothing, Game] =
     ZIO.fromFunctionM(_.gameState.get)
 
-  private def setGameState(gameState: GameRunState): ZIO[WithGameRunState, Nothing, Unit] =
-    ZIO.fromFunctionM(_.gameState.set(gameState))
+  private def setGame(game: Game): ZIO[State[S], Nothing, Unit] =
+    ZIO.fromFunctionM(_.gameState.set(game))
 
-  private def setGame(game: Game): ZIO[WithGameRunState, Nothing, Unit] =
-    ZIO.fromFunctionM(_.gameState.update(_.withGame(game)).unit)
+  private def notify(event: Game => GameEvent): ZIO[State[S], Nothing, Unit] =
+    ZIO.accessM[State[S]](_.gameState.get).flatMap(game => gameStateObserver.receive(event(game)))
+}
 
-  private def withEvent(event: GameEvent): ZIO[WithGameRunState, Nothing, Unit] =
-    for {
-      gameState <- currentGameState
-      newGameState = gameState.withEvent(event)
-      _ <- setGameState(newGameState)
-      _ <- gameStateObserver.receive(newGameState)
-    } yield ()
-
+object GameRunner {
+  final type State[S] = ObserverState[S] with GameState
 }

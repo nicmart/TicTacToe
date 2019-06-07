@@ -1,10 +1,10 @@
 package tictactoe.domain.runner
 
-import scalaz.zio.{DefaultRuntime, IO, Ref}
+import scalaz.zio._
 import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Board.Cell
-import tictactoe.domain.game.model.{Error, Player}
+import tictactoe.domain.game.model.Error
 import tictactoe.domain.game.{Game, model}
 
 class GameRunnerTest extends CommonTest {
@@ -13,9 +13,9 @@ class GameRunnerTest extends CommonTest {
       forAll(genNewGame) { game =>
         forAll(genSequenceOfLegalMoves(game)) { moves =>
           val program = for {
-            runnerWithHistory <- runnerWithHistory(game, moves)
+            runnerWithHistory <- runnerWithHistory(moves)
             (runner, history) = runnerWithHistory
-            _ <- runner.runGame
+            _ <- runner.runGame.provideSomeM(initialState(game))
             games <- history.get
           } yield games
 
@@ -28,10 +28,16 @@ class GameRunnerTest extends CommonTest {
     }
   }
 
+  private def initialState(game: Game): UIO[GameRunner.State[Game]] = Ref.make(game).map { ref =>
+    new ObserverState[Game] with GameState {
+      override def state: Ref[Game] = ref
+      override def gameState: Ref[Game] = ref
+    }
+  }
+
   private def runnerWithHistory(
-      game: Game,
       moves: List[Cell]
-  ): IO[model.Error, (GameRunner, Ref[List[Game]])] = {
+  ): IO[model.Error, (GameRunner[Game], Ref[List[Game]])] = {
     val groupedMoves = moves.grouped(2).toList
     val player1Moves = groupedMoves.flatMap(_.headOption)
     val player2Moves = groupedMoves.flatMap(_.drop(1).headOption)
@@ -39,18 +45,18 @@ class GameRunnerTest extends CommonTest {
     for {
       player1Moves <- playerSource(player1Moves.intersperseWithInvalidAndErrors)
       player2Moves <- playerSource(player2Moves.intersperseWithInvalidAndErrors)
-      presenterAndHistory <- buildPresenter
-      (presenter, historyRef) = presenterAndHistory
-      runner = GameRunner(game, presenter, player1Moves, player2Moves)
+      observerAndHistory <- buildObserver
+      (observer, historyRef) = observerAndHistory
+      runner = GameRunner(player1Moves, player2Moves, observer)
     } yield (runner, historyRef)
   }
 
   private def playerSource(moves: List[Either[Error, Cell]]): IO[Error, MovesSource] =
     Ref.make(moves).map(FakeMovesSource)
 
-  private val buildPresenter: IO[Error, (GameEvents, Ref[List[Game]])] =
+  private val buildObserver: IO[Error, (GameStateObserver[Game], Ref[List[Game]])] =
     Ref.make[List[Game]](Nil).map { ref =>
-      (FakeGameEvents(ref), ref)
+      (FakeGameObserver(ref), ref)
     }
 
   lazy val runtime = new DefaultRuntime {}
@@ -67,12 +73,17 @@ case class FakeMovesSource(movesRef: Ref[List[Either[Error, Cell]]]) extends Mov
     } yield move
 }
 
-case class FakeGameEvents(historyRef: Ref[List[Game]]) extends GameEvents {
-  override def playerHasToChooseMove(player: Player): IO[Error, Unit] = IO.unit
-  override def playerHasChosenIllegalMove(move: Cell, error: Error): IO[Error, Unit] = IO.unit
-  override def playerHasChosenInvalidMove(error: Error): IO[Error, Unit] = IO.unit
-  override def gameHasBeenUpdated(game: Game): IO[Error, Unit] =
-    historyRef.update(games => games :+ game).unit
-  override def gameHasEnded(game: Game): IO[Error, Unit] = IO.unit
-  override def gameIsAboutToStart(game: Game): IO[Error, Unit] = IO.unit
+case class FakeGameObserver(historyRef: Ref[List[Game]]) extends GameStateObserver[Game] {
+  override def receive(event: GameEvent): ZIO[ObserverState[Game], Nothing, Unit] =
+    ZIO
+      .environment[ObserverState[Game]]
+      .flatMap(_.state.get)
+      .flatMap(game => updateHistory(game, historyRef))
+
+  private def updateHistory(newGame: Game, historyRef: Ref[List[Game]]) =
+    for {
+      history <- historyRef.get
+      _ <- if (history.lastOption.contains(newGame)) ZIO.unit
+      else historyRef.set(history :+ newGame).unit
+    } yield ()
 }

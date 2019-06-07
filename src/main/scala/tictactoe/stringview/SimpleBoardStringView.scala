@@ -1,6 +1,6 @@
 package tictactoe.stringview
 
-import tictactoe.consolegameevents.BoardStringView
+import tictactoe.console.BoardStringView
 import tictactoe.stringpresenter.BoardStringViewModel
 import tictactoe.underware.StringUnderware._
 

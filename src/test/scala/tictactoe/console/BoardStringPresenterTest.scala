@@ -1,4 +1,4 @@
-package tictactoe.consolegameevents
+package tictactoe.console
 
 import org.scalacheck.Gen
 import tictactoe.domain.CommonTest
