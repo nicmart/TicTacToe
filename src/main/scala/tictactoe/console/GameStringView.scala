@@ -2,6 +2,6 @@ package tictactoe.console
 
 import tictactoe.stringpresenter.GameStringViewModel
 
-trait GameRunStateStringView {
+trait GameStringView {
   def render(viewModel: GameStringViewModel): String
 }

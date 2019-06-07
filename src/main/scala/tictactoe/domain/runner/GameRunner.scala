@@ -14,9 +14,9 @@ final case class GameRunner[S](
 ) {
   def runGame: ZIO[State[S], Error, Unit] =
     for {
-      _ <- notify(GameIsAboutToStart)
+      _ <- notify(GameStarted)
       _ <- playUntilEnd
-      _ <- notify(GameHasEnded)
+      _ <- notify(GameEnded)
     } yield ()
 
   private def playUntilEnd: ZIO[State[S], Error, Unit] =
@@ -28,23 +28,24 @@ final case class GameRunner[S](
 
   private def playSingleTurn: ZIO[State[S], Error, Game] =
     for {
-      move <- askMoveUntilValid
+      player <- currentPlayer
+      move <- askMoveUntilValid(player)
       game <- tryMove(move).catchAll(catchIllegalMove(move))
       _ <- setGame(game)
+      _ <- notify(GameEvent.PlayerMoved(_, player, move))
     } yield game
 
-  private def askMoveUntilValid: ZIO[State[S], Error, Cell] =
+  private def askMoveUntilValid(player: Player): ZIO[State[S], Error, Cell] =
     for {
-      player <- currentPlayer
-      _ <- notify(PlayerHasToChooseMove(_, player))
-      move <- askMove(player).catchAll(catchInvalidMove)
+      _ <- notify(PlayerMoveRequested(_, player))
+      move <- askMove(player).catchAll(catchInvalidMove(player))
     } yield move
 
-  private def catchInvalidMove(error: Error): ZIO[State[S], Error, Cell] =
-    notify(PlayerHasChosenInvalidMove(_, error)) *> askMoveUntilValid
+  private def catchInvalidMove(player: Player)(error: Error): ZIO[State[S], Error, Cell] =
+    notify(PlayerChoseInvalidMove(_, error)) *> askMoveUntilValid(player)
 
   private def catchIllegalMove(move: Cell)(error: Error): ZIO[State[S], Error, Game] =
-    notify(PlayerHasChosenIllegalMove(_, move, error)) *> playSingleTurn
+    notify(PlayerChoseIllegalMove(_, move, error)) *> playSingleTurn
 
   private def currentPlayer: ZIO[State[S], Error, Player] =
     currentGame.flatMap(game => ZIO.fromEither(game.currentPlayer))

@@ -11,16 +11,16 @@ class GameStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: Gam
   def render(state: GameStringViewModel, event: GameEvent): GameStringViewModel =
     event match {
 
-      case GameEvent.GameIsAboutToStart(_) =>
-        state.setMessage(gameStrings.gameIsAboutToStart)
+      case GameEvent.GameStarted(game) =>
+        Board(Some(gameStrings.gameIsAboutToStart), boardPresenter.render(game.board))
 
-      case GameEvent.PlayerHasToChooseMove(game, player) =>
-        Board(
-          boardPresenter.render(game.board),
-          gameStrings.playerHasToChooseMove(playerName(player))
-        )
+      case GameEvent.PlayerMoveRequested(_, player) =>
+        state.setMessage(gameStrings.playerHasToChooseMove(playerName(player)))
 
-      case GameEvent.GameHasEnded(game) =>
+      case GameEvent.PlayerMoved(game, _, _) =>
+        Board(None, boardPresenter.render(game.board))
+
+      case GameEvent.GameEnded(game) =>
         game.state match {
           case Finished(Winner(player)) =>
             state.setMessage(gameStrings.gameEndedWithWinner(playerName(player)))
@@ -28,10 +28,10 @@ class GameStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: Gam
           case _              => state.setMessage(gameStrings.unexpectedState)
         }
 
-      case GameEvent.PlayerHasChosenInvalidMove(_, _) =>
+      case GameEvent.PlayerChoseInvalidMove(_, _) =>
         state.setMessage(gameStrings.invalidMove)
 
-      case GameEvent.PlayerHasChosenIllegalMove(_, _, _) =>
+      case GameEvent.PlayerChoseIllegalMove(_, _, _) =>
         state.setMessage(gameStrings.invalidMove)
     }
 

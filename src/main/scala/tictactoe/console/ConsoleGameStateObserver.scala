@@ -7,7 +7,7 @@ import tictactoe.stringpresenter.{GameStringPresenter, GameStringViewModel}
 
 final class ConsoleGameStateObserver(
     presenter: GameStringPresenter,
-    view: GameRunStateStringView
+    view: GameStringView
 ) extends GameStateObserver[GameStringViewModel] {
 
   override def receive(

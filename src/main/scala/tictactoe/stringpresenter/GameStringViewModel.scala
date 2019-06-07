@@ -11,6 +11,6 @@ sealed trait GameStringViewModel {
 }
 
 object GameStringViewModel {
-  case class Board(board: BoardStringViewModel, message: String) extends GameStringViewModel
+  case class Board(header: Option[String], board: BoardStringViewModel) extends GameStringViewModel
   case class Message(string: String) extends GameStringViewModel
 }
