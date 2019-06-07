@@ -2,13 +2,13 @@ package tictactoe.console
 
 import scalaz.zio.{UIO, ZIO}
 import tictactoe.domain.runner.GameRunner.HasStateRef
-import tictactoe.domain.runner.{GameEvent, GameStateObserver}
+import tictactoe.domain.runner.{GameEvent, GameStateTransition}
 import tictactoe.stringpresenter.{GameStringPresenter, GameStringViewModel}
 
-final class ConsoleGameStateObserver(
+final class ConsoleGameStateTransition(
     presenter: GameStringPresenter,
     view: GameStringView
-) extends GameStateObserver[GameStringViewModel] {
+) extends GameStateTransition[GameStringViewModel] {
 
   override def receive(
       event: GameEvent

@@ -16,7 +16,7 @@ object ConsoleApp extends App {
     GameRunner(
       new ConsoleMovesSource,
       new ConsoleMovesSource,
-      new ConsoleGameStateObserver(
+      new ConsoleGameStateTransition(
         new GameStringPresenter(
           new BoardStringPresenter(_.fold("🖕", "🧠")),
           RudeGameStrings

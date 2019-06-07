@@ -55,9 +55,9 @@ class GameRunnerTest extends CommonTest {
   private def playerSource(moves: List[Either[Error, Cell]]): IO[Error, MovesSource] =
     Ref.make(moves).map(FakeMovesSource)
 
-  private val buildObserver: IO[Error, (GameStateObserver[Game], Ref[List[Game]])] =
+  private val buildObserver: IO[Error, (GameStateTransition[Game], Ref[List[Game]])] =
     Ref.make[List[Game]](Nil).map { ref =>
-      (FakeGameObserver(ref), ref)
+      (FakeGameTransition(ref), ref)
     }
 
   lazy val runtime = new DefaultRuntime {}
@@ -74,7 +74,7 @@ case class FakeMovesSource(movesRef: Ref[List[Either[Error, Cell]]]) extends Mov
     } yield move
 }
 
-case class FakeGameObserver(historyRef: Ref[List[Game]]) extends GameStateObserver[Game] {
+case class FakeGameTransition(historyRef: Ref[List[Game]]) extends GameStateTransition[Game] {
   override def receive(event: GameEvent): ZIO[HasStateRef[Game], Nothing, Unit] =
     ZIO
       .environment[HasStateRef[Game]]

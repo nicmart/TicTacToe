@@ -10,7 +10,7 @@ import GameRunner._
 final case class GameRunner[S](
     player1Moves: MovesSource,
     player2Moves: MovesSource,
-    gameStateObserver: GameStateObserver[S]
+    gameStateObserver: GameStateTransition[S]
 ) {
   def runGame: ZIO[State[S], Error, Unit] =
     for {
