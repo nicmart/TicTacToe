@@ -10,7 +10,8 @@ import GameRunner._
 final case class GameRunner[S](
     player1Moves: MovesSource,
     player2Moves: MovesSource,
-    gameStateObserver: GameStateTransition[S]
+    gameStateTransition: GameStateTransition[S],
+    gameStateSink: GameStateSink[S]
 ) {
   def runGame: ZIO[State[S], Error, Unit] =
     for {
@@ -63,7 +64,13 @@ final case class GameRunner[S](
     ZIO.fromFunctionM(_.game.set(game))
 
   private def notify(event: Game => GameEvent): ZIO[State[S], Nothing, Unit] =
-    ZIO.accessM[State[S]](_.game.get).flatMap(game => gameStateObserver.receive(event(game)))
+    for {
+      game <- ZIO.accessM[State[S]](_.game.get)
+      state <- ZIO.accessM[State[S]](_.state.get)
+      newState = gameStateTransition.receive(state, event(game))
+      _ <- ZIO.accessM[State[S]](_.state.set(newState))
+      _ <- gameStateSink.use(newState)
+    } yield ()
 }
 
 object GameRunner {

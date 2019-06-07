@@ -16,13 +16,11 @@ object ConsoleApp extends App {
     GameRunner(
       new ConsoleMovesSource,
       new ConsoleMovesSource,
-      new ConsoleGameStateTransition(
-        new GameStringPresenter(
-          new BoardStringPresenter(_.fold("🖕", "🧠")),
-          RudeGameStrings
-        ),
-        new StandardGameStringView(new BeautifulBoardStringView(3))
-      )
+      new GameStringPresenter(
+        new BoardStringPresenter(_.fold("🖕", "🧠")),
+        RudeGameStrings
+      ),
+      new ConsoleGameStateSink(new StandardGameStringView(new BeautifulBoardStringView(3)))
     )
 
   def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
