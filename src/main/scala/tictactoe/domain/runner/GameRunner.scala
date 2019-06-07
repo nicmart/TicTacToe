@@ -1,6 +1,6 @@
 package tictactoe.domain.runner
 
-import scalaz.zio.ZIO
+import scalaz.zio.{Ref, ZIO}
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Player}
@@ -56,15 +56,24 @@ final case class GameRunner[S](
     currentGame.flatMap(game => currentPlayer.fold(player1Moves, player2Moves).askMove(game))
 
   private def currentGame: ZIO[State[S], Nothing, Game] =
-    ZIO.fromFunctionM(_.gameState.get)
+    ZIO.fromFunctionM(_.game.get)
 
   private def setGame(game: Game): ZIO[State[S], Nothing, Unit] =
-    ZIO.fromFunctionM(_.gameState.set(game))
+    ZIO.fromFunctionM(_.game.set(game))
 
   private def notify(event: Game => GameEvent): ZIO[State[S], Nothing, Unit] =
-    ZIO.accessM[State[S]](_.gameState.get).flatMap(game => gameStateObserver.receive(event(game)))
+    ZIO.accessM[State[S]](_.game.get).flatMap(game => gameStateObserver.receive(event(game)))
 }
 
 object GameRunner {
-  final type State[S] = ObserverState[S] with GameState
+
+  trait HasGameRef {
+    def game: Ref[Game]
+  }
+
+  trait HasStateRef[S] {
+    def state: Ref[S]
+  }
+
+  final type State[S] = HasStateRef[S] with HasGameRef
 }

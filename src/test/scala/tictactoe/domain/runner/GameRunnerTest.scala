@@ -6,6 +6,7 @@ import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.Error
 import tictactoe.domain.game.{Game, model}
+import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 
 class GameRunnerTest extends CommonTest {
   "A Game Runner" - {
@@ -29,9 +30,9 @@ class GameRunnerTest extends CommonTest {
   }
 
   private def initialState(game: Game): UIO[GameRunner.State[Game]] = Ref.make(game).map { ref =>
-    new ObserverState[Game] with GameState {
+    new HasStateRef[Game] with HasGameRef {
       override def state: Ref[Game] = ref
-      override def gameState: Ref[Game] = ref
+      override def game: Ref[Game] = ref
     }
   }
 
@@ -74,9 +75,9 @@ case class FakeMovesSource(movesRef: Ref[List[Either[Error, Cell]]]) extends Mov
 }
 
 case class FakeGameObserver(historyRef: Ref[List[Game]]) extends GameStateObserver[Game] {
-  override def receive(event: GameEvent): ZIO[ObserverState[Game], Nothing, Unit] =
+  override def receive(event: GameEvent): ZIO[HasStateRef[Game], Nothing, Unit] =
     ZIO
-      .environment[ObserverState[Game]]
+      .environment[HasStateRef[Game]]
       .flatMap(_.state.get)
       .flatMap(game => updateHistory(game, historyRef))
 

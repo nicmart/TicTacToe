@@ -4,11 +4,11 @@ import tictactoe.domain.game.model.Player
 import tictactoe.domain.game.model.State.Finished
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
 import tictactoe.domain.runner.GameEvent
-import tictactoe.stringpresenter.GameRunStateStringViewModel._
+import tictactoe.stringpresenter.GameStringViewModel._
 
-class GameRunStateStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings) {
+class GameStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings) {
 
-  def render(state: GameRunStateStringViewModel, event: GameEvent): GameRunStateStringViewModel =
+  def render(state: GameStringViewModel, event: GameEvent): GameStringViewModel =
     event match {
 
       case GameEvent.GameIsAboutToStart(_) =>

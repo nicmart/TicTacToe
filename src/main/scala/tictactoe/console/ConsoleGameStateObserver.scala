@@ -1,21 +1,22 @@
 package tictactoe.console
 
 import scalaz.zio.{UIO, ZIO}
-import tictactoe.domain.runner.{GameEvent, GameStateObserver, ObserverState}
-import tictactoe.stringpresenter.{GameRunStateStringPresenter, GameRunStateStringViewModel}
+import tictactoe.domain.runner.GameRunner.HasStateRef
+import tictactoe.domain.runner.{GameEvent, GameStateObserver}
+import tictactoe.stringpresenter.{GameStringPresenter, GameStringViewModel}
 
 final class ConsoleGameStateObserver(
-    presenter: GameRunStateStringPresenter,
+    presenter: GameStringPresenter,
     view: GameRunStateStringView
-) extends GameStateObserver[GameRunStateStringViewModel] {
+) extends GameStateObserver[GameStringViewModel] {
 
   override def receive(
       event: GameEvent
-  ): ZIO[ObserverState[GameRunStateStringViewModel], Nothing, Unit] =
+  ): ZIO[HasStateRef[GameStringViewModel], Nothing, Unit] =
     for {
-      currentViewModel <- ZIO.accessM[ObserverState[GameRunStateStringViewModel]](_.state.get)
+      currentViewModel <- ZIO.accessM[HasStateRef[GameStringViewModel]](_.state.get)
       newViewModel = presenter.render(currentViewModel, event)
-      _ <- ZIO.accessM[ObserverState[GameRunStateStringViewModel]](_.state.set(newViewModel))
+      _ <- ZIO.accessM[HasStateRef[GameStringViewModel]](_.state.set(newViewModel))
       _ <- putStrLn(view.render(newViewModel))
     } yield ()
 

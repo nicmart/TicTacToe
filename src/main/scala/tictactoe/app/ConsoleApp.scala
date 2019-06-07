@@ -4,23 +4,20 @@ import scalaz.zio.{App, Ref, UIO}
 import tictactoe.console.{ConsoleMovesSource, _}
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.{Board, StandardGame}
-import tictactoe.domain.runner.{GameRunner, GameState, ObserverState}
+import tictactoe.domain.runner.GameRunner
+import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 import tictactoe.rudegamestrings.RudeGameStrings
-import tictactoe.stringpresenter.GameRunStateStringViewModel.Message
-import tictactoe.stringpresenter.{
-  BoardStringPresenter,
-  GameRunStateStringPresenter,
-  GameRunStateStringViewModel
-}
+import tictactoe.stringpresenter.GameStringViewModel.Message
+import tictactoe.stringpresenter.{BoardStringPresenter, GameStringPresenter, GameStringViewModel}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameRunStateStringView}
 
 object ConsoleApp extends App {
-  val runner: GameRunner[GameRunStateStringViewModel] =
+  val runner: GameRunner[GameStringViewModel] =
     GameRunner(
       new ConsoleMovesSource,
       new ConsoleMovesSource,
       new ConsoleGameStateObserver(
-        new GameRunStateStringPresenter(
+        new GameStringPresenter(
           new BoardStringPresenter(_.fold("🖕", "🧠")),
           RudeGameStrings
         ),
@@ -34,14 +31,14 @@ object ConsoleApp extends App {
   private def initialGamRefe: UIO[Ref[Game]] =
     Ref.make(StandardGame.newGame(Board.Size(2)))
 
-  private def initialViewRef: UIO[Ref[GameRunStateStringViewModel]] =
+  private def initialViewRef: UIO[Ref[GameStringViewModel]] =
     Ref.make(Message(""))
 
-  private def initialState: UIO[GameRunner.State[GameRunStateStringViewModel]] =
+  private def initialState: UIO[GameRunner.State[GameStringViewModel]] =
     initialGamRefe.zipWith(initialViewRef) { (gameRef, viewRef) =>
-      new ObserverState[GameRunStateStringViewModel] with GameState {
-        override def gameState: Ref[Game] = gameRef
-        override def state: Ref[GameRunStateStringViewModel] = viewRef
+      new HasStateRef[GameStringViewModel] with HasGameRef {
+        override def game: Ref[Game] = gameRef
+        override def state: Ref[GameStringViewModel] = viewRef
       }
     }
 }

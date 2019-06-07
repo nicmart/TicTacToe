@@ -1,7 +1,7 @@
 package tictactoe.console
 
-import tictactoe.stringpresenter.GameRunStateStringViewModel
+import tictactoe.stringpresenter.GameStringViewModel
 
 trait GameRunStateStringView {
-  def render(viewModel: GameRunStateStringViewModel): String
+  def render(viewModel: GameStringViewModel): String
 }
