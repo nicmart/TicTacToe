@@ -2,18 +2,19 @@ package tictactoe.stringpresenter
 
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Board, Mark}
+import tictactoe.underware.SizedString
 
-class BoardStringPresenter(renderMark: Mark => String) {
+class BoardStringPresenter(renderMark: Mark => SizedString, renderEmpty: String => SizedString) {
   def render(board: Board): BoardStringViewModel =
     BoardStringViewModel(board.allCellsByRow.map(renderLine).toList)
-      .getOrElse(BoardStringViewModel.empty(board.size.value, "?"))
+      .getOrElse(BoardStringViewModel.empty(board.size.value, SizedString("?")))
 
-  private def renderLine(line: Seq[(Cell, Option[Mark])]): List[String] =
+  private def renderLine(line: Seq[(Cell, Option[Mark])]): List[SizedString] =
     line.map((renderCell(line.size) _).tupled).toList
 
-  private def renderCell(boardSize: Int)(cell: Cell, state: Option[Mark]): String =
+  private def renderCell(boardSize: Int)(cell: Cell, state: Option[Mark]): SizedString =
     state match {
-      case None       => cellNumber(boardSize, cell).toString
+      case None       => renderEmpty(cellNumber(boardSize, cell).toString)
       case Some(mark) => renderMark(mark)
     }
 
@@ -21,6 +22,5 @@ class BoardStringPresenter(renderMark: Mark => String) {
 }
 
 object BoardStringPresenter {
-  def defaultMarkRendering(mark: Mark): String = mark.fold("X", "O")
-  def coolMarkRendering(mark: Mark): String = mark.fold("🍆", "🍅")
+  def defaultMarkRendering(mark: Mark): SizedString = mark.fold(SizedString("X"), SizedString("O"))
 }

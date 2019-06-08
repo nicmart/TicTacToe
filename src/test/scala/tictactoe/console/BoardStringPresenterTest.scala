@@ -5,6 +5,7 @@ import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.model.Mark
 import tictactoe.stringpresenter.BoardStringPresenter
+import tictactoe.underware.SizedString
 
 class BoardStringPresenterTest extends CommonTest {
   "The Board Presenter" - {
@@ -20,15 +21,17 @@ class BoardStringPresenterTest extends CommonTest {
             val viewModel = presenter.render(board)
 
             board.emptyCells.foreach { cell =>
-              viewModel.rows(cell.y)(cell.x) shouldBe (board.size.value * cell.y + cell.x + 1).toString
+              viewModel.rows(cell.y)(cell.x) shouldBe SizedString(
+                (board.size.value * cell.y + cell.x + 1).toString
+              )
             }
 
             cellsWithX.foreach { cell =>
-              viewModel.rows(cell.y)(cell.x) shouldBe "X"
+              viewModel.rows(cell.y)(cell.x) shouldBe SizedString("X")
             }
 
             cellsWithO.foreach { cell =>
-              viewModel.rows(cell.y)(cell.x) shouldBe "O"
+              viewModel.rows(cell.y)(cell.x) shouldBe SizedString("O")
             }
           }
         }
@@ -36,5 +39,6 @@ class BoardStringPresenterTest extends CommonTest {
     }
   }
 
-  lazy val presenter = new BoardStringPresenter(BoardStringPresenter.defaultMarkRendering)
+  lazy val presenter =
+    new BoardStringPresenter(BoardStringPresenter.defaultMarkRendering, SizedString(_))
 }

@@ -2,7 +2,7 @@ package tictactoe.stringview
 
 import tictactoe.console.BoardStringView
 import tictactoe.stringpresenter.BoardStringViewModel
-import tictactoe.underware.StringUnderware._
+import tictactoe.underware.SizedString
 
 class BeautifulBoardStringView(cellSize: Int) extends BoardStringView {
   override def render(board: BoardStringViewModel): String =
@@ -17,7 +17,7 @@ class BeautifulBoardStringView(cellSize: Int) extends BoardStringView {
   private def topLine(boardSize: Int): String =
     List.fill(boardSize)("─" * cellSize).mkString("┌", "┬", "┐\n")
 
-  private def cellsLine(line: List[String]): String =
+  private def cellsLine(line: List[SizedString]): String =
     line.map(_.center(cellSize)).mkString("│", "│", "│")
 
   private def dividerLine(boardSize: Int): String =

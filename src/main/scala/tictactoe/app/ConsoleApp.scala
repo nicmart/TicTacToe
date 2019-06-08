@@ -10,6 +10,7 @@ import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.Message
 import tictactoe.stringpresenter.{BoardStringPresenter, GameStringPresenter, GameStringViewModel}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
+import tictactoe.underware.AnsiCodes._
 
 object ConsoleApp extends App {
   val runner: GameRunner[GameStringViewModel] =
@@ -17,7 +18,10 @@ object ConsoleApp extends App {
       new ConsoleMovesSource,
       new ConsoleMovesSource,
       new GameStringPresenter(
-        new BoardStringPresenter(_.fold("🖕", "🧠")),
+        new BoardStringPresenter(
+          _.fold(coloriseString(brightRed)("X"), coloriseString(brightBlue)("O")),
+          coloriseString(color(238))
+        ),
         RudeGameStrings
       ),
       new ConsoleGameStateSink(new StandardGameStringView(new BeautifulBoardStringView(3)))
@@ -27,7 +31,7 @@ object ConsoleApp extends App {
     runner.runGame.provideSomeM(initialState).either.const(0)
 
   private def initialGamRef: UIO[Ref[Game]] =
-    Ref.make(StandardGame.newGame(Board.Size(6), 4))
+    Ref.make(StandardGame.newGame(Board.Size(20), 3))
 
   private def initialViewRef: UIO[Ref[GameStringViewModel]] =
     Ref.make(Message(""))
