@@ -31,11 +31,11 @@ sealed abstract case class StandardGame(board: Board, state: State, winningLineS
       _ <- Either.cond(board.markAt(cell).isEmpty, (), Error.CellOccupied(this, cell))
     } yield ()
 
-  // TODO can we generalise, finding the first line that contain all elements of the same kind?
   private def winner(newBoard: Board)(line: Line): Option[Mark] =
-    if (line.cellStates(newBoard).forall(state => state.contains(Mark.O))) Some(Mark.O)
-    else if (line.cellStates(newBoard).forall(state => state.contains(Mark.X))) Some(Mark.X)
-    else None
+    line.cellStates(newBoard).toList match {
+      case (state @ Some(_)) :: tail => state.filter(_ => tail.forall(_ == state))
+      case _                         => None
+    }
 
   private def nextGameState(newBoard: Board, currentPlayer: Player): State =
     hasWinner(newBoard) match {

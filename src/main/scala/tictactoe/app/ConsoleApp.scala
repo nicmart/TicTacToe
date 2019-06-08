@@ -26,14 +26,14 @@ object ConsoleApp extends App {
   def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
     runner.runGame.provideSomeM(initialState).either.const(0)
 
-  private def initialGamRefe: UIO[Ref[Game]] =
+  private def initialGamRef: UIO[Ref[Game]] =
     Ref.make(StandardGame.newGame(Board.Size(6), 4))
 
   private def initialViewRef: UIO[Ref[GameStringViewModel]] =
     Ref.make(Message(""))
 
   private def initialState: UIO[GameRunner.State[GameStringViewModel]] =
-    initialGamRefe.zipWith(initialViewRef) { (gameRef, viewRef) =>
+    initialGamRef.zipWith(initialViewRef) { (gameRef, viewRef) =>
       new HasStateRef[GameStringViewModel] with HasGameRef {
         override def game: Ref[Game] = gameRef
         override def state: Ref[GameStringViewModel] = viewRef
