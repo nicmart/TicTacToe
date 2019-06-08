@@ -15,7 +15,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
     arbBoardSize.arbitrary.map(Board.emptyBoard)
 
   def genNewGameOfSize(size: Int): Gen[Game] =
-    Gen.const(StandardGame.newGame(Board.Size(size)))
+    Gen.const(StandardGame.newGame(Board.Size(size), size))
 
   val genNewGame: Gen[Game] =
     arbitrary[Board.Size].flatMap(size => genNewGameOfSize(size.value))
@@ -45,7 +45,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
       } yield move :: nextMoves
     } else Gen.const(Nil)
 
-  def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[List[Cell]] =
+  def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[Seq[Cell]] =
     for {
       line <- genLine(size)
       moves <- intersperseWithOpponentMoves(size, line.cells)
@@ -61,30 +61,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
 
   def genLine(size: Int): Gen[Line] =
-    Gen.frequency(
-      size -> genHorizontalLine(size),
-      size -> genVerticalLine(size),
-      1 -> genFirstDiagonalLine(size),
-      1 -> genSecondDiagonalLine(size)
-    )
-
-  def genHorizontalLine(size: Int): Gen[Line.Horizontal] =
-    for {
-      y <- genValidCellCoordinate(size)
-      cellsStates <- genLineOfCellValues(size)
-    } yield Line.Horizontal(y, cellsStates)
-
-  def genVerticalLine(size: Int): Gen[Line.Vertical] =
-    for {
-      x <- genValidCellCoordinate(size)
-      cellsStates <- genLineOfCellValues(size)
-    } yield Line.Vertical(x, cellsStates)
-
-  def genFirstDiagonalLine(size: Int): Gen[Line.FirstDiagonal] =
-    genLineOfCellValues(size).map(Line.FirstDiagonal)
-
-  def genSecondDiagonalLine(size: Int): Gen[Line.SecondDiagonal] =
-    genLineOfCellValues(size).map(Line.SecondDiagonal)
+    Gen.oneOf(Line.linesOfBoard(size, size))
 
   def genLineOfCellValues(size: Int): Gen[Vector[Option[Mark]]] =
     Gen.listOfN(size, genCellValue).map(_.toVector)
@@ -124,11 +101,11 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
       move <- genAvailableMove(current)
     } yield current.makeMove(move).getRight
 
-  private def intersperseWithOpponentMoves(size: Int, moves: List[Cell]): Gen[List[Cell]] =
+  private def intersperseWithOpponentMoves(size: Int, moves: Seq[Cell]): Gen[Seq[Cell]] =
     for {
       board <- Gen.const(Board.emptyBoard(Board.Size(size)))
       movesWithMarks = moves.map(cell => cell -> Mark.X)
       boardWithMoves = board.withCells(movesWithMarks)
       opponentMoves <- Gen.pick(moves.size - 1, boardWithMoves.emptyCells)
-    } yield moves.zip(opponentMoves).flatMap { case (m1, m2) => List(m1, m2) } ::: List(moves.last)
+    } yield moves.zip(opponentMoves).flatMap { case (m1, m2) => List(m1, m2) } ++ Seq(moves.last)
 }

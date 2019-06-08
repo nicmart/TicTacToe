@@ -50,6 +50,7 @@ class StandardGameTest extends CommonTest {
       forAll(genNewGame) { newGame =>
         forAll(genHistoryOfMovesWhereCurrentPlayerWins(newGame.size)) { moves =>
           val gameWithMoves = newGame.withMoves(moves)
+
           gameWithMoves.state shouldBe State.Finished(
             Winner(newGame.unsafeCurrentPlayer)
           )

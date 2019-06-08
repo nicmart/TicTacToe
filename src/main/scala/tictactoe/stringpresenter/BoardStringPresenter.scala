@@ -1,15 +1,15 @@
 package tictactoe.stringpresenter
 
 import tictactoe.domain.game.model.Board.Cell
-import tictactoe.domain.game.model.{Board, Line, Mark}
+import tictactoe.domain.game.model.{Board, Mark}
 
 class BoardStringPresenter(renderMark: Mark => String) {
   def render(board: Board): BoardStringViewModel =
-    BoardStringViewModel(board.horizontalLines.map(renderLine(board.size.value)))
+    BoardStringViewModel(board.allCellsByRow.map(renderLine).toList)
       .getOrElse(BoardStringViewModel.empty(board.size.value, "?"))
 
-  private def renderLine(boardSize: Int)(line: Line.Horizontal): List[String] =
-    line.cells.zip(line.cellsStates).map((renderCell(boardSize) _).tupled)
+  private def renderLine(line: Seq[(Cell, Option[Mark])]): List[String] =
+    line.map((renderCell(line.size) _).tupled).toList
 
   private def renderCell(boardSize: Int)(cell: Cell, state: Option[Mark]): String =
     state match {

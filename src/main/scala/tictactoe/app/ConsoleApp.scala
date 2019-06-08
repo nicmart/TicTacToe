@@ -27,7 +27,7 @@ object ConsoleApp extends App {
     runner.runGame.provideSomeM(initialState).either.const(0)
 
   private def initialGamRefe: UIO[Ref[Game]] =
-    Ref.make(StandardGame.newGame(Board.Size(2)))
+    Ref.make(StandardGame.newGame(Board.Size(6), 4))
 
   private def initialViewRef: UIO[Ref[GameStringViewModel]] =
     Ref.make(Message(""))

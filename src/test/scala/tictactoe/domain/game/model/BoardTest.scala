@@ -22,15 +22,5 @@ class BoardTest extends CommonTest {
         }
       }
     }
-
-    "should return lines" in {
-      forAll(genEmptyBoard) { emptyBoard =>
-        forAll(genLine(emptyBoard.size.value)) { line =>
-          val boardWithMarks = emptyBoard.withCells(line.cellsWithMarks)
-          boardWithMarks.line(line) shouldBe line
-          boardWithMarks.allLines should contain(line)
-        }
-      }
-    }
   }
 }

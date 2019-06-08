@@ -27,24 +27,11 @@ sealed abstract case class Board(size: Size, private val cells: Vector[Vector[Op
       cell <- state.fold(Option(cell))(_ => None)
     } yield cell
 
-  def horizontalLines: List[Line.Horizontal] =
-    (0 until size.value).map(y => Line.Horizontal(y, cells(y))).toList
-
-  def verticalLines: List[Line.Vertical] = {
-    def verticalLine(x: Int): Line.Vertical =
-      Line.Vertical(x, (0 until size.value).map(y => markAt(Cell(x, y))).toVector)
-
-    (0 until size.value).map(verticalLine).toList
-  }
-
-  def firstDiagonalLine: Line.FirstDiagonal =
-    Line.FirstDiagonal((0 until size.value).map(x => markAt(Cell(x, x))).toVector)
-
-  def secondDiagonalLine: Line.SecondDiagonal =
-    Line.SecondDiagonal((0 until size.value).map(x => markAt(Cell(size.value - 1 - x, x))).toVector)
-
-  def allLines: List[Line] =
-    firstDiagonalLine :: secondDiagonalLine :: horizontalLines ::: verticalLines
+  def allCellsByRow: Seq[Seq[(Cell, Option[Mark])]] =
+    for {
+      y <- 0 until size.value
+      line = (0 until size.value).map(x => Cell(x, y) -> cells(y)(x))
+    } yield line
 
   private def validateCoordinate(coordinate: Int, error: Error): Either[Error, Int] =
     Either.cond(0 <= coordinate && coordinate < size.value, coordinate, error)
