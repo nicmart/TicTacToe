@@ -26,6 +26,6 @@ object AnsiCodes {
 
   val reset = "\u001b[0m"
 
-  def coloriseString(color: String)(string: String): SizedString =
-    SizedString(color + string + reset, string.length)
+  def coloriseString(colorCode: String)(string: String): SizedString =
+    SizedString(colorCode + string + reset, string.length)
 }

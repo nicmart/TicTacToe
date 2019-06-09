@@ -13,6 +13,7 @@ final case class GameRunner[S](
     gameStateTransition: GameStateTransition[S],
     gameStateSink: GameStateSink[S]
 ) {
+  // TODO can we remove the error?
   def runGame: ZIO[State[S], Error, Unit] =
     for {
       _ <- notify(GameStarted)
