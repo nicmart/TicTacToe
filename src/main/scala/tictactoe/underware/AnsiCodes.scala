@@ -21,6 +21,8 @@ object AnsiCodes {
   val brightWhite = "\u001b[37;1m"
   val gray = color(240)
 
+  val clearScreen = "\u001b[2J\u001b[H"
+
   def color(n: Int): String =
     s"\u001b[38;5;${n}m"
 

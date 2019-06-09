@@ -1,16 +1,28 @@
 package tictactoe.stringpresenter
 
-import tictactoe.stringpresenter.GameStringViewModel.{Board, Message}
-
 sealed trait GameStringViewModel {
-  def setMessage(string: String): GameStringViewModel =
-    this match {
-      case Board(_, _) => Message(string)
-      case Message(_)  => Message(string)
-    }
+  def header: String
+  def messages: Seq[String]
+
+  def withMessage(message: String): GameStringViewModel
+  def cleanMessages: GameStringViewModel
+  def withBoard(board: BoardStringViewModel): GameStringViewModel
 }
 
 object GameStringViewModel {
-  case class Board(header: Option[String], board: BoardStringViewModel) extends GameStringViewModel
-  case class Message(string: String) extends GameStringViewModel
+  case class GameScreen(header: String, board: BoardStringViewModel, messages: Vector[String])
+      extends GameStringViewModel {
+    override def withMessage(message: String): GameStringViewModel =
+      copy(messages = messages :+ message)
+    override def cleanMessages: GameStringViewModel = copy(messages = Vector.empty)
+    override def withBoard(board: BoardStringViewModel): GameStringViewModel = copy(board = board)
+  }
+
+  case class NormalScreen(header: String, messages: Vector[String]) extends GameStringViewModel {
+    override def withMessage(message: String): GameStringViewModel =
+      copy(messages = messages :+ message)
+    override def cleanMessages: GameStringViewModel = copy(messages = Vector.empty)
+    override def withBoard(board: BoardStringViewModel): GameStringViewModel =
+      GameScreen(header, board, messages)
+  }
 }
