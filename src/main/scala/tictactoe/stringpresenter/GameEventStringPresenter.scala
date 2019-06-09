@@ -3,10 +3,10 @@ package tictactoe.stringpresenter
 import tictactoe.domain.game.model.Player
 import tictactoe.domain.game.model.State.Finished
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
-import tictactoe.domain.runner.{GameEvent, GameStateTransition}
+import tictactoe.domain.runner.{GameEvent, GameEventStateTransition}
 
-class GameStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings)
-    extends GameStateTransition[GameStringViewModel] {
+class GameEventStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings)
+    extends GameEventStateTransition[GameStringViewModel] {
 
   def receive(state: GameStringViewModel, event: GameEvent): GameStringViewModel =
     event match {

@@ -7,4 +7,8 @@ trait GameStrings {
   def gameEndedWithDraw: String
   def unexpectedState: String
   def gameIsAboutToStart: String
+
+  def enterGameSize(min: Int, max: Int): String
+  def enterWinningLength(min: Int, max: Int): String
+  def invalidSettingEntered: String
 }

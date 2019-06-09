@@ -1,5 +1,5 @@
 package tictactoe.domain.runner
 
-trait GameStateTransition[S] {
+trait GameEventStateTransition[S] {
   def receive(state: S, event: GameEvent): S
 }

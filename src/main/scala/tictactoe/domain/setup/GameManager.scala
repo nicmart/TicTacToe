@@ -1,21 +1,15 @@
 package tictactoe.domain.setup
 
-import scalaz.zio.{IO, UIO}
+import scalaz.zio.{IO, ZIO}
+import tictactoe.domain.runner.GameRunner.HasStateRef
 
-class GameManager[S](setupSource: SetupSource, gameBuilder: GameBuilder[S]) {
-  def run: UIO[Unit] =
+class GameManager[S](setupRunner: GameSetupRunner[S], gameBuilder: GameBuilder[S]) {
+  def run: ZIO[HasStateRef[S], Nothing, Unit] =
     for {
-      setup <- askSetup
+      setup <- setupRunner.runSetup
       runner = gameBuilder.runner(setup)
       initialState = gameBuilder.initialState(setup)
       _ <- runner.runGame.provideSomeM(initialState).catchAll(_ => IO.unit)
-      continue <- askContinue
-      _ <- if (continue) run else IO.unit
+      _ <- run
     } yield ()
-
-  def askSetup: UIO[GameSetup] =
-    setupSource.askSetup.catchAll(_ => askSetup)
-
-  def askContinue: UIO[Boolean] =
-    setupSource.askToContinue.catchAll(_ => askContinue)
 }

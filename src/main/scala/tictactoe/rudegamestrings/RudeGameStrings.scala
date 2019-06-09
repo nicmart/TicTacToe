@@ -22,4 +22,12 @@ object RudeGameStrings extends GameStrings {
   override def gameIsAboutToStart: String =
     "Welcome to the most over-engineered TicTacToe ever!!!"
 
+  override def enterGameSize(min: Int, max: Int): String =
+    s"Come on, give me the size of the board (between $min and $max)"
+
+  override def enterWinningLength(min: Int, max: Int): String =
+    s"Hurry up old man, we need the winning line length (between $min and $max)"
+
+  override def invalidSettingEntered: String =
+    s"That setting was invalid dude."
 }

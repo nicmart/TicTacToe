@@ -49,7 +49,7 @@ class GameRunnerTest extends CommonTest {
       player1Moves <- playerSource(player1Moves.intersperseWithInvalidAndErrors)
       player2Moves <- playerSource(player2Moves.intersperseWithInvalidAndErrors)
       sink <- buildSink
-      runner = GameRunner(player1Moves, player2Moves, FakeGameTransition, sink)
+      runner = GameRunner(player1Moves, player2Moves, FakeGameEventTransition$, sink)
     } yield (runner, sink.ref)
   }
 
@@ -77,7 +77,7 @@ case class FakeGameStateSink[S](ref: Ref[S]) extends GameStateSink[S] {
   override def use(state: S): UIO[Unit] = ref.set(state)
 }
 
-object FakeGameTransition extends GameStateTransition[List[Game]] {
+object FakeGameEventTransition$ extends GameEventStateTransition[List[Game]] {
   override def receive(history: List[Game], event: GameEvent): List[Game] =
     if (history.lastOption.contains(event.game)) history
     else history :+ event.game

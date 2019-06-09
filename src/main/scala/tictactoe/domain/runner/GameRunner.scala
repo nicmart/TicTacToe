@@ -10,7 +10,7 @@ import GameRunner._
 final case class GameRunner[S](
     player1Moves: MovesSource,
     player2Moves: MovesSource,
-    gameStateTransition: GameStateTransition[S],
+    gameStateTransition: GameEventStateTransition[S],
     gameStateSink: GameStateSink[S]
 ) {
   // TODO can we remove the error?
