@@ -3,17 +3,11 @@ package tictactoe.domain.setup.standard
 import scalaz.zio.ZIO
 import tictactoe.domain.runner.GameRunner.HasStateRef
 import tictactoe.domain.runner.GameStateSink
-import tictactoe.domain.setup.SetupEvent.{
-  GameSizeRequested,
-  SetupCompleted,
-  UserChoseInvalidOption,
-  WinningLengthRequested
-}
 import tictactoe.domain.setup._
 
 class StandardGameSetupRunner[S](
     source: GameSetupSettingsSource,
-    setupEventStateTransition: SetupEventStateTransition[S],
+    setupEvents: SetupEvents[S],
     sink: GameStateSink[S]
 ) extends GameSetupRunner[S] {
 
@@ -22,21 +16,21 @@ class StandardGameSetupRunner[S](
       gameSize <- askGameSizeUntilValid
       winningLength <- askWinningLengthUntilValid(gameSize)
       setup = GameSetup(gameSize, winningLength)
-      _ <- notify(SetupCompleted(setup))
+      _ <- notify(setupEvents.setupCompleted(setup))
     } yield setup
 
   private def askGameSizeUntilValid: ZIO[HasStateRef[S], Nothing, Int] =
     for {
-      _ <- notify(GameSizeRequested)
+      _ <- notify(setupEvents.gameSizeRequested)
       size <- source.askGameSize.catchAll(_ => catchInvalidGameSize)
     } yield size
 
   private def catchInvalidGameSize: ZIO[HasStateRef[S], Nothing, Int] =
-    notify(UserChoseInvalidOption) *> askGameSizeUntilValid
+    notify(setupEvents.userChoseInvalidOption) *> askGameSizeUntilValid
 
   private def askWinningLengthUntilValid(gameSize: Int): ZIO[HasStateRef[S], Nothing, Int] =
     for {
-      _ <- notify(WinningLengthRequested)
+      _ <- notify(setupEvents.winningLengthRequested)
       size <- source
         .askWinningGameLength(gameSize)
         .catchAll(_ => catchInvalidWinningLength(gameSize))
@@ -45,12 +39,12 @@ class StandardGameSetupRunner[S](
   private def catchInvalidWinningLength(
       gameSize: Int
   ): ZIO[HasStateRef[S], Nothing, Int] =
-    notify(UserChoseInvalidOption) *> askWinningLengthUntilValid(gameSize)
+    notify(setupEvents.userChoseInvalidOption) *> askWinningLengthUntilValid(gameSize)
 
-  private def notify(event: SetupEvent): ZIO[HasStateRef[S], Nothing, Unit] =
+  private def notify(state: S => S): ZIO[HasStateRef[S], Nothing, Unit] =
     for {
       currentState <- ZIO.accessM[HasStateRef[S]](_.state.get)
-      nextState = setupEventStateTransition.receive(currentState, event)
+      nextState = state(currentState)
       _ <- ZIO.accessM[HasStateRef[S]](_.state.set(nextState))
       _ <- sink.use(nextState)
     } yield ()
