@@ -16,7 +16,7 @@ sealed abstract case class StandardGame(board: Board, state: State, winningLineS
       currentPlayer <- checkIfGameInProgress
       _ <- checkIfLegalMove(cell)
       newBoard <- board.withMark(currentPlayer.mark, cell)
-      newState = nextGameState(newBoard, currentPlayer)
+      newState = nextGameState(newBoard, currentPlayer, cell, currentPlayer.mark)
     } yield new StandardGame(newBoard, newState, winningLineSize) {}
 
   private def checkIfGameInProgress: Either[Error, Player] =
@@ -31,21 +31,32 @@ sealed abstract case class StandardGame(board: Board, state: State, winningLineS
       _ <- Either.cond(board.markAt(cell).isEmpty, (), Error.CellOccupied(this, cell))
     } yield ()
 
-  private def winner(newBoard: Board)(line: Line): Option[Mark] =
-    line.cellStates(newBoard).toList match {
-      case (state @ Some(_)) :: tail => state.filter(_ => tail.forall(_ == state))
-      case _                         => None
-    }
-
-  private def nextGameState(newBoard: Board, currentPlayer: Player): State =
-    hasWinner(newBoard) match {
+  private def nextGameState(
+      newBoard: Board,
+      currentPlayer: Player,
+      lastMove: Cell,
+      lastMoveMark: Mark
+  ): State =
+    hasWinner(newBoard, lastMove, lastMoveMark) match {
       case true                                  => State.Finished(Winner(currentPlayer))
       case false if newBoard.emptyCells.nonEmpty => State.InProgress(currentPlayer.switch)
       case false                                 => State.Finished(Draw)
     }
 
-  private def hasWinner(newBoard: Board): Boolean =
-    Line.linesOfBoard(newBoard.size.value, winningLineSize).flatMap(winner(newBoard)).nonEmpty
+  private def connectedCells(newBoard: Board, from: Cell, mark: Mark)(direction: Cell): Int =
+    board.markAt(from + direction) match {
+      case Some(m) if m == mark =>
+        1 + connectedCells(newBoard, from + direction, mark)(direction)
+      case _ => 0
+    }
+
+  private def hasWinner(newBoard: Board, lastMove: Cell, lastMoveMark: Mark): Boolean = {
+    val conn = connectedCells(newBoard, lastMove, lastMoveMark) _
+    conn(Cell(1, 0)) + conn(Cell(-1, 0)) + 1 == winningLineSize ||
+    conn(Cell(0, 1)) + conn(Cell(0, -1)) + 1 == winningLineSize ||
+    conn(Cell(1, 1)) + conn(Cell(-1, -1)) + 1 == winningLineSize ||
+    conn(Cell(1, -1)) + conn(Cell(-1, 1)) + 1 == winningLineSize
+  }
 }
 
 object StandardGame {

@@ -48,7 +48,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
   def genHistoryOfMovesWhereCurrentPlayerWins(size: Int): Gen[Seq[Cell]] =
     for {
       line <- genLine(size)
-      moves <- intersperseWithOpponentMoves(size, line.cells)
+      moves <- intersperseWithOpponentMoves(size, line)
     } yield moves
 
   val genWonGame: Gen[Game] = for {
@@ -60,8 +60,9 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
   val genCellValue: Gen[Option[Mark]] =
     Gen.oneOf(Some(Mark.X), Some(Mark.O), None)
 
-  def genLine(size: Int): Gen[Line] =
-    Gen.oneOf(Line.linesOfBoard(size, size))
+  // TODO this generates the first horizontal line only
+  def genLine(size: Int): Gen[List[Cell]] =
+    Gen.const((1 to size).map(x => Cell(x, 0)).toList)
 
   def genLineOfCellValues(size: Int): Gen[Vector[Option[Mark]]] =
     Gen.listOfN(size, genCellValue).map(_.toVector)

@@ -41,6 +41,9 @@ object Board {
   def emptyBoard(size: Size): Board = new Board(size, Vector.fill(size.value, size.value)(None)) {}
 
   case class Size(value: Int)
-  case class Cell(x: Int, y: Int)
+  case class Cell(x: Int, y: Int) {
+    def +(other: Cell): Cell = Cell(x + other.x, y + other.y)
+    def unary_-(): Cell = Cell(-x, -y)
+  }
   case class CellWithState(cell: Cell, state: Option[Mark])
 }
