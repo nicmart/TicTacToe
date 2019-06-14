@@ -62,7 +62,7 @@ object ScalaCheckDomainContext extends EitherOps with CommonOps {
 
   // TODO this generates the first horizontal line only
   def genLine(size: Int): Gen[List[Cell]] =
-    Gen.const((1 to size).map(x => Cell(x, 0)).toList)
+    Gen.const((0 until size).map(x => Cell(x, 0)).toList)
 
   def genLineOfCellValues(size: Int): Gen[Vector[Option[Mark]]] =
     Gen.listOfN(size, genCellValue).map(_.toVector)
