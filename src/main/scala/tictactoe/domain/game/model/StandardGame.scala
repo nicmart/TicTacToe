@@ -3,11 +3,14 @@ package tictactoe.domain.game.model
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.StandardGame.StateTransition
-import tictactoe.domain.game.model.State.InProgress
 import tictactoe.domain.game.model.State.Result.{Draw, Winner}
 
-sealed abstract case class StandardGame(board: Board, state: State, winningLineSize: Int)
-    extends Game {
+sealed abstract case class StandardGame(
+    board: Board,
+    state: State,
+    currentPlayer: Player,
+    winningLineSize: Int
+) extends Game {
 
   private val stateTransition = new StateTransition(board, winningLineSize)
 
@@ -16,17 +19,14 @@ sealed abstract case class StandardGame(board: Board, state: State, winningLineS
 
   override def makeMove(cell: Board.Cell): Either[Error, Game] =
     for {
-      currentPlayer <- checkIfGameInProgress
+      _ <- checkIfGameInProgress
       _ <- checkIfLegalMove(cell)
       newBoard <- board.withMark(currentPlayer.mark, cell)
       newState = stateTransition.nextState(currentPlayer, cell)
-    } yield new StandardGame(newBoard, newState, winningLineSize) {}
+    } yield new StandardGame(newBoard, newState, currentPlayer.switch, winningLineSize) {}
 
-  private def checkIfGameInProgress: Either[Error, Player] =
-    state match {
-      case InProgress(currentPlayer) => Right(currentPlayer)
-      case _                         => Left(Error.GameHasAlreadyEnded)
-    }
+  private def checkIfGameInProgress: Either[Error, Unit] =
+    Either.cond(inProgress, (), Error.GameHasAlreadyEnded)
 
   private def checkIfLegalMove(cell: Cell): Either[Error, Unit] =
     for {
@@ -38,7 +38,12 @@ sealed abstract case class StandardGame(board: Board, state: State, winningLineS
 object StandardGame {
   // Without loss of generality we can assume that player one is always X
   def newGame(size: Board.Size, winningLineSize: Int): StandardGame =
-    new StandardGame(Board.emptyBoard(size), State.InProgress(Player.Player1), winningLineSize) {}
+    new StandardGame(
+      Board.emptyBoard(size),
+      State.InProgress(Player.Player1),
+      Player.Player1,
+      winningLineSize
+    ) {}
 
   /**
     * Just group some functions together to calculate the State Transition of a Standard Game

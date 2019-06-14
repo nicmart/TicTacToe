@@ -22,8 +22,6 @@ trait CommonOps extends EitherOps {
       (games, move) =>
         games :+ games.last.makeMove(move).getRight
     }
-
-    def unsafeCurrentPlayer: Player = game.currentPlayer.getRight
   }
 
   implicit class Moves(moves: List[Cell]) {

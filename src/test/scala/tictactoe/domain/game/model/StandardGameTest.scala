@@ -10,7 +10,7 @@ class StandardGameTest extends CommonTest {
       forAll(genInProgressGameWithMoveThatWillNotEndTheGame) {
         case (game, cell) =>
           val gameNext = game.makeMove(cell).getRight
-          gameNext.unsafeCurrentPlayer shouldBe game.unsafeCurrentPlayer.switch
+          gameNext.currentPlayer shouldBe game.currentPlayer.switch
       }
     }
 
@@ -18,7 +18,7 @@ class StandardGameTest extends CommonTest {
       forAll(genGameWithAvailableMove) {
         case (game, cell) =>
           val gameNext = game.makeMove(cell).getRight
-          gameNext.board.markAt(cell) shouldBe Some(game.unsafeCurrentPlayer.mark)
+          gameNext.board.markAt(cell) shouldBe Some(game.currentPlayer.mark)
       }
     }
 
@@ -52,7 +52,7 @@ class StandardGameTest extends CommonTest {
           val gameWithMoves = newGame.withMoves(moves)
 
           gameWithMoves.state shouldBe State.Finished(
-            Winner(newGame.unsafeCurrentPlayer)
+            Winner(newGame.currentPlayer)
           )
         }
       }

@@ -49,7 +49,7 @@ final case class GameRunner[S](
     notify(gameEvents.playerChoseIllegalMove(_, move, error)(_)) *> playSingleTurn
 
   private def currentPlayer: ZIO[State[S], Error, Player] =
-    currentGame.flatMap(game => ZIO.fromEither(game.currentPlayer))
+    currentGame.map(_.currentPlayer)
 
   private def tryMove(move: Cell): ZIO[State[S], Error, Game] =
     currentGame.flatMap(game => ZIO.fromEither(game.makeMove(move)))
