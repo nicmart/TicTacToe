@@ -4,21 +4,20 @@ import scalaz.zio.{Ref, ZIO}
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Player}
-import tictactoe.domain.runner.GameEvent._
-import GameRunner._
+import tictactoe.domain.runner.GameRunner._
 
 final case class GameRunner[S](
     player1Moves: MovesSource,
     player2Moves: MovesSource,
-    gameStateTransition: GameEventStateTransition[S],
+    gameEvents: GameEvents[S],
     gameStateSink: GameStateSink[S]
 ) {
   // TODO can we remove the error?
   def runGame: ZIO[State[S], Error, Unit] =
     for {
-      _ <- notify(GameStarted)
+      _ <- notify(gameEvents.gameStarted(_)(_))
       _ <- playUntilEnd
-      _ <- notify(GameEnded)
+      _ <- notify(gameEvents.gameEnded(_)(_))
     } yield ()
 
   private def playUntilEnd: ZIO[State[S], Error, Unit] =
@@ -34,20 +33,20 @@ final case class GameRunner[S](
       move <- askMoveUntilValid(player)
       game <- tryMove(move).catchAll(catchIllegalMove(move))
       _ <- setGame(game)
-      _ <- notify(GameEvent.PlayerMoved(_, player, move))
+      _ <- notify(gameEvents.playerMoved(_, player, move)(_))
     } yield game
 
   private def askMoveUntilValid(player: Player): ZIO[State[S], Error, Cell] =
     for {
-      _ <- notify(PlayerMoveRequested(_, player))
+      _ <- notify(gameEvents.playerMoveRequested(_, player)(_))
       move <- askMove(player).catchAll(catchInvalidMove(player))
     } yield move
 
   private def catchInvalidMove(player: Player)(error: Error): ZIO[State[S], Error, Cell] =
-    notify(PlayerChoseInvalidMove(_, error)) *> askMoveUntilValid(player)
+    notify(gameEvents.playerChoseInvalidMove(_, error)(_)) *> askMoveUntilValid(player)
 
   private def catchIllegalMove(move: Cell)(error: Error): ZIO[State[S], Error, Game] =
-    notify(PlayerChoseIllegalMove(_, move, error)) *> playSingleTurn
+    notify(gameEvents.playerChoseIllegalMove(_, move, error)(_)) *> playSingleTurn
 
   private def currentPlayer: ZIO[State[S], Error, Player] =
     currentGame.flatMap(game => ZIO.fromEither(game.currentPlayer))
@@ -64,11 +63,11 @@ final case class GameRunner[S](
   private def setGame(game: Game): ZIO[State[S], Nothing, Unit] =
     ZIO.fromFunctionM(_.game.set(game))
 
-  private def notify(event: Game => GameEvent): ZIO[State[S], Nothing, Unit] =
+  private def notify(event: (Game, S) => S): ZIO[State[S], Nothing, Unit] =
     for {
       game <- ZIO.accessM[State[S]](_.game.get)
       state <- ZIO.accessM[State[S]](_.state.get)
-      newState = gameStateTransition.receive(state, event(game))
+      newState = event(game, state)
       _ <- ZIO.accessM[State[S]](_.state.set(newState))
       _ <- gameStateSink.use(newState)
     } yield ()

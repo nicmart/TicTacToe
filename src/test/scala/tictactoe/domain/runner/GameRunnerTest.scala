@@ -5,7 +5,7 @@ import tictactoe.domain.CommonTest
 import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
-import tictactoe.domain.game.model.Error
+import tictactoe.domain.game.model.{Error, Player}
 import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 
 class GameRunnerTest extends CommonTest {
@@ -77,8 +77,33 @@ case class FakeGameStateSink[S](ref: Ref[S]) extends GameStateSink[S] {
   override def use(state: S): UIO[Unit] = ref.set(state)
 }
 
-object FakeGameEventTransition$ extends GameEventStateTransition[List[Game]] {
-  override def receive(history: List[Game], event: GameEvent): List[Game] =
-    if (history.lastOption.contains(event.game)) history
-    else history :+ event.game
+object FakeGameEventTransition$ extends GameEvents[List[Game]] {
+
+  override def gameStarted(game: Game)(state: List[Game]): List[Game] = update(state, game)
+  override def gameEnded(game: Game)(state: List[Game]): List[Game] = update(state, game)
+  override def playerMoveRequested(
+      game: Game,
+      player: Player
+  )(state: List[Game]): List[Game] = update(state, game)
+
+  override def playerMoved(
+      game: Game,
+      player: Player,
+      move: Cell
+  )(state: List[Game]): List[Game] = update(state, game)
+
+  override def playerChoseInvalidMove(
+      game: Game,
+      error: Error
+  )(state: List[Game]): List[Game] = update(state, game)
+
+  override def playerChoseIllegalMove(
+      game: Game,
+      move: Cell,
+      error: Error
+  )(state: List[Game]): List[Game] = update(state, game)
+
+  private def update(history: List[Game], game: Game): List[Game] =
+    if (history.lastOption.contains(game)) history
+    else history :+ game
 }

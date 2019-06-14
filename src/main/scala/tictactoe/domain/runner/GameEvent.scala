@@ -3,15 +3,11 @@ package tictactoe.domain.runner
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.{Board, Error, Player}
 
-sealed trait GameEvent {
-  def game: Game
-}
-
-object GameEvent {
-  case class GameStarted(game: Game) extends GameEvent
-  case class GameEnded(game: Game) extends GameEvent
-  case class PlayerMoveRequested(game: Game, player: Player) extends GameEvent
-  case class PlayerMoved(game: Game, player: Player, move: Board.Cell) extends GameEvent
-  case class PlayerChoseInvalidMove(game: Game, error: Error) extends GameEvent
-  case class PlayerChoseIllegalMove(game: Game, move: Board.Cell, error: Error) extends GameEvent
+trait GameEvents[S] {
+  def gameStarted(game: Game)(state: S): S
+  def gameEnded(game: Game)(state: S): S
+  def playerMoveRequested(game: Game, player: Player)(state: S): S
+  def playerMoved(game: Game, player: Player, move: Board.Cell)(state: S): S
+  def playerChoseInvalidMove(game: Game, error: Error)(state: S): S
+  def playerChoseIllegalMove(game: Game, move: Board.Cell, error: Error)(state: S): S
 }
