@@ -11,17 +11,22 @@ import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
 
 class ConsoleGameBuilder(config: ConsoleGameConfig) extends GameBuilder[GameStringViewModel] {
 
-  override def runner(setup: GameSetup): GameRunner[GameStringViewModel] =
-    new GameRunner[GameStringViewModel](
-      new ConsoleMovesSource,
-      new ConsoleMovesSource,
-      new StringGameEvents(
-        new BoardStringPresenter(_.fold(config.player1Mark, config.player2Mark), config.emptyCell),
-        config.strings
-      ),
-      new ConsoleGameStateSink(
-        new StandardGameStringView(
-          new BeautifulBoardStringView(3)
+  override def runner(setup: GameSetup): UIO[GameRunner[GameStringViewModel]] =
+    UIO.succeed(
+      new GameRunner[GameStringViewModel](
+        new ConsoleMovesSource,
+        new ConsoleMovesSource,
+        new StringGameEvents(
+          new BoardStringPresenter(
+            _.fold(config.player1Mark, config.player2Mark),
+            config.emptyCell
+          ),
+          config.strings
+        ),
+        new ConsoleGameStateSink(
+          new StandardGameStringView(
+            new BeautifulBoardStringView(3)
+          )
         )
       )
     )
