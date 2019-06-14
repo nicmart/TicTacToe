@@ -8,7 +8,7 @@ import tictactoe.domain.setup.standard.StandardGameSetupRunner
 import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.NormalScreen
 import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
-import tictactoe.stringview.StandardGameStringView
+import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
 import tictactoe.underware.AnsiCodes._
 
 object ConsoleApp extends App {
@@ -17,7 +17,7 @@ object ConsoleApp extends App {
       new ConsoleGameSetupSettingSource,
       new StringSetupEvents(RudeGameStrings),
       new ConsoleGameStateSink(
-        StandardGameStringView
+        new StandardGameStringView(new BeautifulBoardStringView(3))
       ),
       maxGameSize = 25
     ),
