@@ -6,12 +6,10 @@ import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.GameRunner
 import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 import tictactoe.domain.setup.{GameBuilder, GameSetup}
-import tictactoe.rudegamestrings.RudeGameStrings
-import tictactoe.stringpresenter.{StringGameEvents, GameStringViewModel}
+import tictactoe.stringpresenter.{GameStringViewModel, StringGameEvents}
 import tictactoe.stringview.{BeautifulBoardStringView, CellView, StandardGameStringView}
-import tictactoe.underware.AnsiCodes.{brightBlue, brightRed, color, coloriseString}
 
-class ConsoleGameBuilder extends GameBuilder[GameStringViewModel] {
+class ConsoleGameBuilder(config: ConsoleGameConfig) extends GameBuilder[GameStringViewModel] {
 
   override def runner(setup: GameSetup): GameRunner[GameStringViewModel] =
     new GameRunner[GameStringViewModel](
@@ -20,12 +18,12 @@ class ConsoleGameBuilder extends GameBuilder[GameStringViewModel] {
       new StringGameEvents(
         new BeautifulBoardStringView(
           new CellView(
-            _.fold(coloriseString(brightRed)("X"), coloriseString(brightBlue)("O")),
-            coloriseString(color(238))
+            _.fold(config.player1Mark, config.player2Mark),
+            config.emptyCell
           ),
           3
         ),
-        RudeGameStrings
+        config.strings
       ),
       new ConsoleGameStateSink(StandardGameStringView)
     )

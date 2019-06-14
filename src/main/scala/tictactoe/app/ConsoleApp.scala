@@ -9,6 +9,7 @@ import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.NormalScreen
 import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
 import tictactoe.stringview.StandardGameStringView
+import tictactoe.underware.AnsiCodes._
 
 object ConsoleApp extends App {
   val manager = new GameManager[GameStringViewModel](
@@ -19,7 +20,14 @@ object ConsoleApp extends App {
         StandardGameStringView
       )
     ),
-    new ConsoleGameBuilder
+    new ConsoleGameBuilder(
+      ConsoleGameConfig(
+        coloriseString(brightRed)("X"),
+        coloriseString(brightBlue)("O"),
+        coloriseString(color(238)),
+        RudeGameStrings
+      )
+    )
   )
 
   def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
