@@ -6,11 +6,14 @@ import tictactoe.domain.game.model.{Board, Player}
 import tictactoe.domain.game.{Game, model}
 import tictactoe.domain.runner.GameEvents
 
-final class GameEventStringPresenter(boardPresenter: BoardStringPresenter, gameStrings: GameStrings)
+/**
+  * The "presenter" in these event-based representation
+  */
+final class StringGameEvents(boardView: BoardStringView, gameStrings: GameStrings)
     extends GameEvents[GameStringViewModel] {
 
   override def gameStarted(game: Game)(state: GameStringViewModel): GameStringViewModel =
-    state.cleanMessages.withBoard(boardPresenter.render(game.board))
+    state.cleanMessages.withBoard(boardView.render(game.board))
 
   override def gameEnded(game: Game)(state: GameStringViewModel): GameStringViewModel =
     game.state match {
@@ -28,7 +31,7 @@ final class GameEventStringPresenter(boardPresenter: BoardStringPresenter, gameS
   override def playerMoved(game: Game, player: Player, move: Board.Cell)(
       state: GameStringViewModel
   ): GameStringViewModel =
-    state.cleanMessages.withBoard(boardPresenter.render(game.board))
+    state.cleanMessages.withBoard(boardView.render(game.board))
 
   override def playerChoseInvalidMove(
       game: Game,

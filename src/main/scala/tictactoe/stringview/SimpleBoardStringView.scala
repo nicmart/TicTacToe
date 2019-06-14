@@ -1,14 +1,18 @@
 package tictactoe.stringview
 
-import tictactoe.console.BoardStringView
-import tictactoe.stringpresenter.BoardStringViewModel
+import tictactoe.domain.game.model.Board
+import tictactoe.stringpresenter.BoardStringView
 import tictactoe.underware.SizedString
 
-class SimpleBoardStringView(cellSize: Int) extends BoardStringView {
-  override def render(board: BoardStringViewModel): String =
-    board.rows.map(cellsLine).mkString(dividerLine(board.size))
+class SimpleBoardStringView(cellView: CellView, cellSize: Int) extends BoardStringView {
 
-  private def cellsLine(line: List[SizedString]): String =
+  override def render(board: Board): String =
+    board.allCellsByRow
+      .map(cellView.renderCells)
+      .map(cellsLine)
+      .mkString(dividerLine(board.size.value))
+
+  private def cellsLine(line: Seq[SizedString]): String =
     line.map(_.center(cellSize)).mkString("|")
 
   private def dividerLine(boardSize: Int): String =

@@ -8,7 +8,7 @@ import tictactoe.domain.setup.standard.StandardGameSetupRunner
 import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.NormalScreen
 import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
-import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
+import tictactoe.stringview.StandardGameStringView
 
 object ConsoleApp extends App {
   val manager = new GameManager[GameStringViewModel](
@@ -16,7 +16,7 @@ object ConsoleApp extends App {
       new ConsoleGameSetupSettingSource,
       new StringSetupEvents(RudeGameStrings),
       new ConsoleGameStateSink(
-        new StandardGameStringView(new BeautifulBoardStringView(3))
+        StandardGameStringView
       )
     ),
     new ConsoleGameBuilder

@@ -1,15 +1,15 @@
 package tictactoe.console
 
 import tictactoe.domain.CommonTest
-import tictactoe.stringview.SimpleBoardStringView
-import tictactoe.stringpresenter.BoardStringViewModel
+import tictactoe.domain.game.model.Board
+import tictactoe.stringview.{CellView, SimpleBoardStringView}
 import tictactoe.underware.SizedString
 
 class SimpleBoardStringViewTest extends CommonTest {
   "A SimpleBoardView" - {
     "should render an empty board" in {
-      val boardViewModel = BoardStringViewModel.empty(3, SizedString("?"))
-      val renderedBoard = view.render(boardViewModel)
+      val board = Board.emptyBoard(Board.Size(3))
+      val renderedBoard = view.render(board)
       val expectedRenderedBoard =
         """> ? | ? | ? 
            >---|---|---
@@ -22,5 +22,6 @@ class SimpleBoardStringViewTest extends CommonTest {
     }
   }
 
-  lazy val view = new SimpleBoardStringView(3)
+  lazy val view =
+    new SimpleBoardStringView(new CellView(_ => SizedString("?"), _ => SizedString("?")), 3)
 }
