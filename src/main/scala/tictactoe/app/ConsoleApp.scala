@@ -18,7 +18,8 @@ object ConsoleApp extends App {
       new StringSetupEvents(RudeGameStrings),
       new ConsoleGameStateSink(
         StandardGameStringView
-      )
+      ),
+      maxGameSize = 25
     ),
     new ConsoleGameBuilder(
       ConsoleGameConfig(

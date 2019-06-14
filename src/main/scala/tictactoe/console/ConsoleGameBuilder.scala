@@ -6,6 +6,7 @@ import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.GameRunner
 import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 import tictactoe.domain.setup.{GameBuilder, GameSetup}
+import tictactoe.random.RandomMovesSource
 import tictactoe.stringpresenter.{GameStringViewModel, StringGameEvents}
 import tictactoe.stringview.{BeautifulBoardStringView, CellView, StandardGameStringView}
 
@@ -13,19 +14,19 @@ class ConsoleGameBuilder(config: ConsoleGameConfig) extends GameBuilder[GameStri
 
   override def runner(setup: GameSetup): GameRunner[GameStringViewModel] =
     new GameRunner[GameStringViewModel](
-      new ConsoleMovesSource,
-      new ConsoleMovesSource,
-      new StringGameEvents(
+      player1Moves = new ConsoleMovesSource,
+      player2Moves = RandomMovesSource,
+      gameEvents = new StringGameEvents(
         new BeautifulBoardStringView(
           new CellView(
-            _.fold(config.player1Mark, config.player2Mark),
-            config.emptyCell
+            renderMark = _.fold(config.player1Mark, config.player2Mark),
+            renderEmpty = config.emptyCell
           ),
-          3
+          cellSize = 3
         ),
-        config.strings
+        gameStrings = config.strings
       ),
-      new ConsoleGameStateSink(StandardGameStringView)
+      gameStateSink = new ConsoleGameStateSink(StandardGameStringView)
     )
 
   override def initialState(

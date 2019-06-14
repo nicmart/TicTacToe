@@ -13,16 +13,13 @@ class ConsoleGameSetupSettingSource extends GameSetupSettingsSource {
     for {
       input <- readLn
       size <- IO.fromEither(Try(input.toInt).toEither).mapError(_ => InvalidSetting)
-      validSize <- if (size >= 1 && size <= 25) IO.succeed(size) else IO.fail(InvalidSetting)
-    } yield validSize
+    } yield size
 
   override def askWinningGameLength(gameSize: Int): IO[GameSetupSettingsSource.Error, Int] =
     for {
       input <- readLn
       length <- IO.fromEither(Try(input.toInt).toEither).mapError(_ => InvalidSetting)
-      validSize <- if (length >= 1 && length <= gameSize) IO.succeed(length)
-      else IO.fail(InvalidSetting)
-    } yield validSize
+    } yield length
 
   private def readLn: UIO[String] =
     ZIO.effectTotal(StdIn.readLine().trim)
