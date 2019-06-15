@@ -6,7 +6,6 @@ import tictactoe.domain.ScalaCheckDomainContext._
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.Board.Cell
 import tictactoe.domain.game.model.{Error, Player}
-import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
 
 class GameRunnerTest extends CommonTest {
   "A Game Runner" - {
@@ -14,9 +13,9 @@ class GameRunnerTest extends CommonTest {
       forAll(genNewGame) { game =>
         forAll(genSequenceOfLegalMoves(game)) { moves =>
           val program = for {
-            runnerWithHistory <- runnerWithHistory(moves)
+            runnerWithHistory <- runnerWithHistory(game, moves)
             (runner, history) = runnerWithHistory
-            _ <- runner.runGame.provideSomeM(initialState(game))
+            _ <- runner.runGame
             games <- history.get
           } yield games
 
@@ -29,16 +28,8 @@ class GameRunnerTest extends CommonTest {
     }
   }
 
-  private def initialState(game: Game): UIO[GameRunner.State[List[Game]]] =
-    for {
-      gameRef <- Ref.make(game)
-      stateRef <- Ref.make[List[Game]](Nil)
-    } yield new HasStateRef[List[Game]] with HasGameRef {
-      override def state: Ref[List[Game]] = stateRef
-      override def game: Ref[Game] = gameRef
-    }
-
   private def runnerWithHistory(
+      initialGame: Game,
       moves: List[Cell]
   ): ZIO[Any, Error, (GameRunner[List[Game]], Ref[List[Game]])] = {
     val groupedMoves = moves.grouped(2).toList
@@ -49,14 +40,15 @@ class GameRunnerTest extends CommonTest {
       player1Moves <- playerSource(player1Moves.intersperseWithInvalidAndErrors)
       player2Moves <- playerSource(player2Moves.intersperseWithInvalidAndErrors)
       sink <- buildSink
-      runner = GameRunner(player1Moves, player2Moves, FakeGameEventTransition$, sink)
+      gameRef <- Ref.make(initialGame)
+      runner = GameRunner(gameRef, player1Moves, player2Moves, FakeGameEvents, sink)
     } yield (runner, sink.ref)
   }
 
   private def playerSource(moves: List[Either[Error, Cell]]): IO[Error, MovesSource] =
     Ref.make(moves).map(FakeMovesSource)
 
-  private val buildSink: ZIO[Any, Nothing, FakeGameStateSink[List[Game]]] =
+  private val buildSink: UIO[FakeGameStateSink[List[Game]]] =
     Ref.make[List[Game]](Nil).map(FakeGameStateSink.apply)
 
   lazy val runtime = new DefaultRuntime {}
@@ -74,10 +66,10 @@ case class FakeMovesSource(movesRef: Ref[List[Either[Error, Cell]]]) extends Mov
 }
 
 case class FakeGameStateSink[S](ref: Ref[S]) extends GameStateSink[S] {
-  override def use(state: S): UIO[Unit] = ref.set(state)
+  def update(f: S => S): UIO[Unit] = ref.update(f).unit
 }
 
-object FakeGameEventTransition$ extends GameEvents[List[Game]] {
+object FakeGameEvents extends GameEvents[List[Game]] {
 
   override def gameStarted(game: Game)(state: List[Game]): List[Game] = update(state, game)
   override def gameEnded(game: Game)(state: List[Game]): List[Game] = update(state, game)

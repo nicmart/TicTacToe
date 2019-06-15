@@ -1,19 +1,19 @@
 package tictactoe.console
 
-import scalaz.zio.{Ref, UIO, ZIO}
+import scalaz.zio.{Ref, UIO}
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.{Board, StandardGame}
-import tictactoe.domain.runner.GameRunner
-import tictactoe.domain.runner.GameRunner.{HasGameRef, HasStateRef}
+import tictactoe.domain.runner.{GameRunner, GameStateSink}
 import tictactoe.domain.setup.{GameBuilder, GameSetup}
-import tictactoe.stringpresenter.{BoardStringPresenter, StringGameEvents, GameStringViewModel}
-import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
+import tictactoe.stringpresenter.{BoardStringPresenter, GameStringViewModel, StringGameEvents}
 
-class ConsoleGameBuilder(config: ConsoleGameConfig) extends GameBuilder[GameStringViewModel] {
+class ConsoleGameBuilder(config: ConsoleGameConfig, stateSink: GameStateSink[GameStringViewModel])
+    extends GameBuilder[GameStringViewModel] {
 
   override def runner(setup: GameSetup): UIO[GameRunner[GameStringViewModel]] =
-    UIO.succeed(
+    initialGamRef(setup).map { gameRef =>
       new GameRunner[GameStringViewModel](
+        gameRef,
         new ConsoleMovesSource,
         new ConsoleMovesSource,
         new StringGameEvents(
@@ -23,23 +23,8 @@ class ConsoleGameBuilder(config: ConsoleGameConfig) extends GameBuilder[GameStri
           ),
           config.strings
         ),
-        new ConsoleGameStateSink(
-          new StandardGameStringView(
-            new BeautifulBoardStringView(3)
-          )
-        )
+        stateSink
       )
-    )
-
-  override def initialState(
-      setup: GameSetup
-  ): ZIO[HasStateRef[GameStringViewModel], Nothing, GameRunner.State[GameStringViewModel]] =
-    for {
-      stateRef <- ZIO.access[HasStateRef[GameStringViewModel]](_.state)
-      gameRef <- initialGamRef(setup)
-    } yield new HasStateRef[GameStringViewModel] with HasGameRef {
-      override def game: Ref[Game] = gameRef
-      override def state: Ref[GameStringViewModel] = stateRef
     }
 
   private def initialGamRef(setup: GameSetup): UIO[Ref[Game]] =
