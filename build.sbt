@@ -1,6 +1,8 @@
 import Dependencies._
 
-ThisBuild / scalaVersion     := "2.12.8"
+resolvers += Resolver.sonatypeRepo("releases")
+
+ThisBuild / scalaVersion := "2.12.8"
 
 lazy val root = (project in file("."))
   .settings(
