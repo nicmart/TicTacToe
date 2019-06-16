@@ -1,6 +1,5 @@
 package tictactoe.app
 
-import scalaz.zio.{App, IO, UIO, ZIO}
 import tictactoe.console._
 import tictactoe.domain.setup.GameManager
 import tictactoe.domain.setup.standard.StandardGameSetupRunner
@@ -8,19 +7,16 @@ import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.NormalScreen
 import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
-import tictactoe.typeclasses.instances.ZioInstances._
+import tictactoe.typeclasses.MonadE._
+import tictactoe.typeclasses.{MakeRef, MonadE}
 import tictactoe.underware.AnsiCodes._
-import tictactoe.underware.ZioConsole
 
-object ConsoleApp extends App {
+class ConsoleApp[F[+_, +_]: MonadE](console: Console[F], makeRef: MakeRef[F]) {
 
-  def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
-    manager.flatMap(_.run).const(0)
-
-  private def manager: UIO[GameManager[IO, GameStringViewModel]] = sink.map { sink =>
-    new GameManager[IO, GameStringViewModel](
-      new StandardGameSetupRunner[IO, GameStringViewModel](
-        new ConsoleGameSetupSettingSource(ZioConsole),
+  def manager: F[Nothing, GameManager[F, GameStringViewModel]] = sink.map { sink =>
+    new GameManager[F, GameStringViewModel](
+      new StandardGameSetupRunner[F, GameStringViewModel](
+        new ConsoleGameSetupSettingSource(console),
         new StringSetupEvents(RudeGameStrings),
         sink,
         maxGameSize = 25
@@ -32,21 +28,21 @@ object ConsoleApp extends App {
           coloriseString(color(238)),
           RudeGameStrings
         ),
-        ZioConsole,
+        console,
         sink,
-        MakeZioRef
+        makeRef
       )
     )
   }
 
-  private def sink: UIO[ConsoleGameStateSink[IO]] =
-    MakeZioRef.make(initialScreen).map { screen =>
+  private def sink: F[Nothing, ConsoleGameStateSink[F]] =
+    makeRef.make(initialScreen).map { screen =>
       new ConsoleGameStateSink(
         new StandardGameStringView(
           new BeautifulBoardStringView(3)
         ),
         screen,
-        ZioConsole
+        console
       )
     }
 
