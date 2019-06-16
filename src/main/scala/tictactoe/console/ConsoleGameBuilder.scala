@@ -1,18 +1,22 @@
 package tictactoe.console
 
-import scalaz.zio.{Ref, UIO}
 import tictactoe.domain.game.Game
 import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.{GameRunner, GameStateSink}
 import tictactoe.domain.setup.{GameBuilder, GameSetup}
 import tictactoe.stringpresenter.{BoardStringPresenter, GameStringViewModel, StringGameEvents}
+import tictactoe.typeclasses.{Delay, MakeRef, MonadE, URef}
+import tictactoe.typeclasses.MonadE._
 
-class ConsoleGameBuilder(config: ConsoleGameConfig, stateSink: GameStateSink[GameStringViewModel])
-    extends GameBuilder[GameStringViewModel] {
+class ConsoleGameBuilder[F[+_, +_]: MonadE: Delay](
+    config: ConsoleGameConfig,
+    stateSink: GameStateSink[F, GameStringViewModel],
+    makeRef: MakeRef[F]
+) extends GameBuilder[F, GameStringViewModel] {
 
-  override def runner(setup: GameSetup): UIO[GameRunner[GameStringViewModel]] =
+  override def runner(setup: GameSetup): F[Nothing, GameRunner[F, GameStringViewModel]] =
     initialGamRef(setup).map { gameRef =>
-      new GameRunner[GameStringViewModel](
+      new GameRunner[F, GameStringViewModel](
         gameRef,
         new ConsoleMovesSource,
         new ConsoleMovesSource,
@@ -27,6 +31,6 @@ class ConsoleGameBuilder(config: ConsoleGameConfig, stateSink: GameStateSink[Gam
       )
     }
 
-  private def initialGamRef(setup: GameSetup): UIO[Ref[Game]] =
-    Ref.make(StandardGame.newGame(Board.Size(setup.gameSize), setup.winningLineLength))
+  private def initialGamRef(setup: GameSetup): F[Nothing, URef[F, Game]] =
+    makeRef.make(StandardGame.newGame(Board.Size(setup.gameSize), setup.winningLineLength))
 }

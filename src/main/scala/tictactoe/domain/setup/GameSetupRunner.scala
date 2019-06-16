@@ -1,7 +1,5 @@
 package tictactoe.domain.setup
 
-import scalaz.zio.UIO
-
-trait GameSetupRunner[S] {
-  def runSetup: UIO[GameSetup]
+trait GameSetupRunner[F[_, _]] {
+  def runSetup: F[Nothing, GameSetup]
 }
