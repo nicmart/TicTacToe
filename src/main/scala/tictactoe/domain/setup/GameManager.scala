@@ -1,9 +1,13 @@
 package tictactoe.domain.setup
 
-import scalaz.zio.UIO
+import tictactoe.typeclasses.MonadE
+import tictactoe.typeclasses.MonadE._
 
-class GameManager[S](setupRunner: GameSetupRunner[S], gameBuilder: GameBuilder[S]) {
-  def run: UIO[Unit] =
+class GameManager[F[+_, +_]: MonadE, S](
+    setupRunner: GameSetupRunner[F],
+    gameBuilder: GameBuilder[F, S]
+) {
+  def run: F[Nothing, Unit] =
     for {
       setup <- setupRunner.runSetup
       runner <- gameBuilder.runner(setup)
