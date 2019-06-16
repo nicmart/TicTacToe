@@ -24,7 +24,7 @@ final case class GameRunner[F[+_, +_], S](
   private def playUntilEnd: F[Nothing, Unit] =
     for {
       _ <- playSingleTurn
-      game <- currentGame
+      game <- game.get
       _ <- if (game.inProgress) playUntilEnd else F.unit
     } yield ()
 
@@ -32,10 +32,10 @@ final case class GameRunner[F[+_, +_], S](
     for {
       player <- currentPlayer
       move <- askMoveUntilValid(player)
-      game <- F.handleError(tryMove(move), catchIllegalMove(move))
-      _ <- setGame(game)
+      currentGame <- F.handleError(tryMove(move), catchIllegalMove(move))
+      _ <- game.set(currentGame)
       _ <- notify(gameEvents.playerMoved(_, player, move)(_))
-    } yield game
+    } yield currentGame
 
   private def askMoveUntilValid(player: Player): F[Nothing, Cell] =
     for {
@@ -50,23 +50,14 @@ final case class GameRunner[F[+_, +_], S](
     notify(gameEvents.playerChoseIllegalMove(_, move, error)(_)).flatMap(_ => playSingleTurn)
 
   private def currentPlayer: F[Nothing, Player] =
-    currentGame.map(_.currentPlayer)
+    game.get.map(_.currentPlayer)
 
   private def tryMove(move: Cell): F[Error, Game] =
     game.get.flatMap(game => F.fromEither(game.makeMove(move)))
 
   private def askMove(player: Player): F[Error, Cell] =
-    currentGame.flatMap(game => player.fold(player1Moves, player2Moves).askMove(game))
-
-  private def currentGame: F[Nothing, Game] =
-    game.get
-
-  private def setGame(newGame: Game): F[Nothing, Unit] =
-    game.set(newGame)
+    game.get.flatMap(game => player.fold(player1Moves, player2Moves).askMove(game))
 
   private def notify(event: (Game, S) => S): F[Nothing, Unit] =
-    for {
-      game <- currentGame
-      _ <- gameStateSink.update(event(game, _))
-    } yield ()
+    game.get.flatMap(game => gameStateSink.update(event(game, _)))
 }
