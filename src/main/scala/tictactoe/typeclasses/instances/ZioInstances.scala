@@ -3,7 +3,7 @@ package tictactoe.typeclasses.instances
 import cats.Monad
 import cats.effect.Sync
 import scalaz.zio.{IO, Ref, UIO}
-import tictactoe.typeclasses.{Delay, MakeRef, MonadE, URef}
+import tictactoe.typeclasses.{MakeRef, MonadE, URef}
 
 object ZioInstances {
   class ZIORef[T](zioRef: Ref[T]) extends URef[IO, T] {
@@ -41,10 +41,5 @@ object ZioInstances {
 //        f: IO[E, T],
 //        handle: E => IO[E2, T]
 //    ): IO[E2, T] = f.catchAll(handle)
-  }
-
-  implicit val delay: Delay[IO] = new Delay[IO] {
-    override def delay[T](t: => T): IO[Throwable, T] = IO.effect(t)
-    override def delayTotal[T](t: => T): IO[Nothing, T] = IO.effectTotal(t)
   }
 }
