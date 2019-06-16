@@ -1,6 +1,6 @@
 package tictactoe.typeclasses.instances
 
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.effect.Sync
 import scalaz.zio.{IO, Ref, UIO}
 import tictactoe.typeclasses.{Delay, MakeRef, MonadE, URef}
@@ -18,7 +18,7 @@ object ZioInstances {
   implicit def sync[T]: Sync[IO[Throwable, ?]] = scalaz.zio.interop.catz.taskConcurrentInstances
 
   implicit val me: MonadE[IO] = new MonadE[IO] {
-    override def monad[E]: Monad[IO[E, ?]] = new Monad[IO[E, ?]] {
+    override def monadT[E]: Monad[IO[E, ?]] = new Monad[IO[E, ?]] {
       override final def pure[A](a: A): IO[E, A] = IO.succeed(a)
       override final def map[A, B](fa: IO[E, A])(f: A => B): IO[E, B] = fa.map(f)
       override final def flatMap[A, B](fa: IO[E, A])(f: A => IO[E, B]): IO[E, B] = fa.flatMap(f)
@@ -29,15 +29,18 @@ object ZioInstances {
         }
     }
 
-    override def functor[T]: Functor[IO[?, T]] = new Functor[IO[?, T]] {
-      override def map[A, B](fa: IO[A, T])(f: A => B): IO[B, T] = fa.mapError(f)
+    override def monadE[T]: Monad[IO[?, T]] = new Monad[IO[?, T]] {
+      override def pure[A](x: A): IO[A, T] = IO.fail(x)
+      override def flatMap[A, B](fa: IO[A, T])(f: A => IO[B, T]): IO[B, T] = fa.catchAll(f)
+      override def tailRecM[A, B](a: A)(f: A => IO[Either[A, B], T]): IO[B, T] =
+        ???
     }
 
-    override def throwE[E, T](e: E): IO[E, T] = IO.fail(e)
-    override def handleError[E, E2 <: E, T](
-        f: IO[E, T],
-        handle: E => IO[E2, T]
-    ): IO[E2, T] = f.catchAll(handle)
+//    override def throwE[E, T](e: E): IO[E, T] = IO.fail(e)
+//    override def handleError[E, E2 <: E, T](
+//        f: IO[E, T],
+//        handle: E => IO[E2, T]
+//    ): IO[E2, T] = f.catchAll(handle)
   }
 
   implicit val delay: Delay[IO] = new Delay[IO] {
