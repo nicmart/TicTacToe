@@ -10,15 +10,17 @@ import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
 import tictactoe.typeclasses.instances.ZioInstances._
 import tictactoe.underware.AnsiCodes._
+import tictactoe.underware.ZioConsole
 
 object ConsoleApp extends App {
+
   def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
     manager.flatMap(_.run).const(0)
 
   private def manager: UIO[GameManager[IO, GameStringViewModel]] = sink.map { sink =>
     new GameManager[IO, GameStringViewModel](
       new StandardGameSetupRunner[IO, GameStringViewModel](
-        new ConsoleGameSetupSettingSource,
+        new ConsoleGameSetupSettingSource(ZioConsole),
         new StringSetupEvents(RudeGameStrings),
         sink,
         maxGameSize = 25
@@ -30,6 +32,7 @@ object ConsoleApp extends App {
           coloriseString(color(238)),
           RudeGameStrings
         ),
+        ZioConsole,
         sink,
         MakeZioRef
       )
@@ -42,7 +45,8 @@ object ConsoleApp extends App {
         new StandardGameStringView(
           new BeautifulBoardStringView(3)
         ),
-        screen
+        screen,
+        ZioConsole
       )
     }
 

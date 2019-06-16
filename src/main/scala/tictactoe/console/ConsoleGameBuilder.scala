@@ -5,11 +5,12 @@ import tictactoe.domain.game.model.{Board, StandardGame}
 import tictactoe.domain.runner.{GameRunner, GameStateSink}
 import tictactoe.domain.setup.{GameBuilder, GameSetup}
 import tictactoe.stringpresenter.{BoardStringPresenter, GameStringViewModel, StringGameEvents}
-import tictactoe.typeclasses.{Delay, MakeRef, MonadE, URef}
 import tictactoe.typeclasses.MonadE._
+import tictactoe.typeclasses.{MakeRef, MonadE, URef}
 
-class ConsoleGameBuilder[F[+_, +_]: MonadE: Delay](
+class ConsoleGameBuilder[F[+_, +_]: MonadE](
     config: ConsoleGameConfig,
+    console: Console[F],
     stateSink: GameStateSink[F, GameStringViewModel],
     makeRef: MakeRef[F]
 ) extends GameBuilder[F, GameStringViewModel] {
@@ -18,8 +19,8 @@ class ConsoleGameBuilder[F[+_, +_]: MonadE: Delay](
     initialGamRef(setup).map { gameRef =>
       new GameRunner[F, GameStringViewModel](
         gameRef,
-        new ConsoleMovesSource,
-        new ConsoleMovesSource,
+        new ConsoleMovesSource(console),
+        new ConsoleMovesSource(console),
         new StringGameEvents(
           new BoardStringPresenter(
             _.fold(config.player1Mark, config.player2Mark),
