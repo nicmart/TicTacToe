@@ -9,9 +9,11 @@ object EitherInstances {
     override def update(f: T => T): Either[Nothing, Unit] = Right({ t = f(t); () })
   }
 
-  object MakeId2Ref extends MakeRef[Either] {
+  object MakeEitherRef extends MakeRef[Either] {
     override def make[T](t: T): Either[Nothing, URef[Either, T]] = Right(new EitherRef(t))
   }
+
+  implicit val me = new EitherMonadE
 
   class EitherMonadE extends MonadE[Either] {
     override def monadT[E]: Monad[Either[E, ?]] = new Monad[Either[E, ?]] {
