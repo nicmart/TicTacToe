@@ -6,19 +6,18 @@ import tictactoe.domain.game.model.{Error, Player}
 import tictactoe.typeclasses.MonadE._
 import tictactoe.typeclasses.{MonadE, URef}
 
-final case class GameRunner[F[+_, +_], S](
+final case class GameRunner[F[+_, +_]](
     game: URef[F, Game],
     player1Moves: MovesSource[F],
     player2Moves: MovesSource[F],
-    gameEvents: GameEvents[S],
-    gameStateSink: GameStateSink[F, S]
+    gameEvents: GameEvents[F[Nothing, Unit]]
 )(implicit F: MonadE[F]) {
 
   def runGame: F[Nothing, Unit] =
     for {
-      _ <- notify(gameEvents.gameStarted(_)(_))
+      _ <- notify(gameEvents.gameStarted)
       _ <- playUntilEnd
-      _ <- notify(gameEvents.gameEnded(_)(_))
+      _ <- notify(gameEvents.gameEnded)
     } yield ()
 
   private def playUntilEnd: F[Nothing, Unit] =
@@ -34,20 +33,20 @@ final case class GameRunner[F[+_, +_], S](
       move <- askMoveUntilValid(player)
       currentGame <- F.handleError(tryMove(move), catchIllegalMove(move))
       _ <- game.set(currentGame)
-      _ <- notify(gameEvents.playerMoved(_, player, move)(_))
+      _ <- notify(gameEvents.playerMoved(_, player, move))
     } yield currentGame
 
   private def askMoveUntilValid(player: Player): F[Nothing, Cell] =
     for {
-      _ <- notify(gameEvents.playerMoveRequested(_, player)(_))
+      _ <- notify(gameEvents.playerMoveRequested(_, player))
       move <- F.handleError(askMove(player), catchInvalidMove(player))
     } yield move
 
   private def catchInvalidMove(player: Player)(error: Error): F[Nothing, Cell] =
-    notify(gameEvents.playerChoseInvalidMove(_, error)(_)).flatMap(_ => askMoveUntilValid(player))
+    notify(gameEvents.playerChoseInvalidMove(_, error)).flatMap(_ => askMoveUntilValid(player))
 
   private def catchIllegalMove(move: Cell)(error: Error): F[Nothing, Game] =
-    notify(gameEvents.playerChoseIllegalMove(_, move, error)(_)).flatMap(_ => playSingleTurn)
+    notify(gameEvents.playerChoseIllegalMove(_, move, error)).flatMap(_ => playSingleTurn)
 
   private def currentPlayer: F[Nothing, Player] =
     game.get.map(_.currentPlayer)
@@ -58,6 +57,6 @@ final case class GameRunner[F[+_, +_], S](
   private def askMove(player: Player): F[Error, Cell] =
     game.get.flatMap(game => player.fold(player1Moves, player2Moves).askMove(game))
 
-  private def notify(event: (Game, S) => S): F[Nothing, Unit] =
-    game.get.flatMap(game => gameStateSink.update(event(game, _)))
+  private def notify(event: Game => F[Nothing, Unit]): F[Nothing, Unit] =
+    game.get.flatMap(event)
 }

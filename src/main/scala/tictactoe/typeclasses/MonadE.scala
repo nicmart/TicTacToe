@@ -7,6 +7,7 @@ import scala.util.Try
 trait MonadE[F[+_, +_]] {
   def monadT[E]: Monad[F[E, ?]]
   def monadE[T]: Monad[F[?, T]]
+
   final def throwE[E, T](e: E): F[E, T] = monadE[T].pure(e)
   final def handleError[E, E2, T](f: F[E, T], handle: E => F[E2, T]): F[E2, T] =
     monadE[T].flatMap(f)(handle)
