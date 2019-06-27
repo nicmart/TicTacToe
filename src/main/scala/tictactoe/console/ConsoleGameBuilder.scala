@@ -15,20 +15,22 @@ class ConsoleGameBuilder[F[+_, +_]: MonadE](
     makeRef: MakeRef[F]
 ) extends GameBuilder[F, GameStringViewModel] {
 
-  override def runner(setup: GameSetup): F[Nothing, GameRunner[F, GameStringViewModel]] =
+  override def runner(setup: GameSetup): F[Nothing, GameRunner[F]] =
     initialGamRef(setup).map { gameRef =>
-      new GameRunner[F, GameStringViewModel](
+      new GameRunner[F](
         gameRef,
         new ConsoleMovesSource(console),
         new ConsoleMovesSource(console),
-        new StringGameEvents(
-          new BoardStringPresenter(
-            _.fold(config.player1Mark, config.player2Mark),
-            config.emptyCell
+        ConsoleGameEvents(
+          new StringGameEvents(
+            new BoardStringPresenter(
+              _.fold(config.player1Mark, config.player2Mark),
+              config.emptyCell
+            ),
+            config.strings
           ),
-          config.strings
-        ),
-        stateSink
+          stateSink
+        )
       )
     }
 
