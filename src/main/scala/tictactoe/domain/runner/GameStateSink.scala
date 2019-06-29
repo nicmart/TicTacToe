@@ -1,7 +1,5 @@
 package tictactoe.domain.runner
 
-import scalaz.zio.UIO
-
-trait GameStateSink[S] {
-  def update(f: S => S): UIO[Unit]
+trait GameStateSink[F[_, _], S] {
+  def update(f: S => S): F[Nothing, Unit]
 }

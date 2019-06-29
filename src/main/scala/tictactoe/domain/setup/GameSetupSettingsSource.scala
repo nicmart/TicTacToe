@@ -1,10 +1,8 @@
 package tictactoe.domain.setup
 
-import scalaz.zio.IO
-
-trait GameSetupSettingsSource {
-  def askGameSize: IO[GameSetupSettingsSource.Error, Int]
-  def askWinningGameLength(gameSize: Int): IO[GameSetupSettingsSource.Error, Int]
+trait GameSetupSettingsSource[F[_, _]] {
+  def askGameSize: F[GameSetupSettingsSource.Error, Int]
+  def askWinningGameLength: F[GameSetupSettingsSource.Error, Int]
 }
 
 object GameSetupSettingsSource {

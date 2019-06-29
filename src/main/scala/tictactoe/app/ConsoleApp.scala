@@ -1,6 +1,5 @@
 package tictactoe.app
 
-import scalaz.zio.{App, Ref, UIO, ZIO}
 import tictactoe.console._
 import tictactoe.domain.setup.GameManager
 import tictactoe.domain.setup.standard.StandardGameSetupRunner
@@ -8,16 +7,16 @@ import tictactoe.rudegamestrings.RudeGameStrings
 import tictactoe.stringpresenter.GameStringViewModel.NormalScreen
 import tictactoe.stringpresenter.{GameStringViewModel, StringSetupEvents}
 import tictactoe.stringview.{BeautifulBoardStringView, StandardGameStringView}
+import tictactoe.typeclasses.MonadE._
+import tictactoe.typeclasses.{MakeRef, MonadE}
 import tictactoe.underware.AnsiCodes._
 
-object ConsoleApp extends App {
-  def run(args: List[String]): ZIO[ConsoleApp.Environment, Nothing, Int] =
-    manager.flatMap(_.run).const(0)
+class ConsoleApp[F[+_, +_]: MonadE](console: Console[F], makeRef: MakeRef[F]) {
 
-  private def manager: UIO[GameManager[GameStringViewModel]] = sink.map { sink =>
-    new GameManager[GameStringViewModel](
-      new StandardGameSetupRunner(
-        new ConsoleGameSetupSettingSource,
+  def manager: F[Nothing, GameManager[F, GameStringViewModel]] = sink.map { sink =>
+    new GameManager[F, GameStringViewModel](
+      new StandardGameSetupRunner[F, GameStringViewModel](
+        new ConsoleGameSetupSettingSource(console),
         new StringSetupEvents(RudeGameStrings),
         sink,
         maxGameSize = 25
@@ -29,19 +28,23 @@ object ConsoleApp extends App {
           coloriseString(color(238)),
           RudeGameStrings
         ),
-        sink
+        console,
+        sink,
+        makeRef
       )
     )
   }
 
-  private def sink: UIO[ConsoleGameStateSink] = Ref.make(initialScreen).map { screen =>
-    new ConsoleGameStateSink(
-      new StandardGameStringView(
-        new BeautifulBoardStringView(3)
-      ),
-      screen
-    )
-  }
+  private def sink: F[Nothing, ConsoleGameStateSink[F]] =
+    makeRef.make(initialScreen).map { screen =>
+      new ConsoleGameStateSink(
+        new StandardGameStringView(
+          new BeautifulBoardStringView(3)
+        ),
+        screen,
+        console
+      )
+    }
 
   private def initialScreen: GameStringViewModel =
     NormalScreen(

@@ -1,20 +1,21 @@
 package tictactoe.console
 
-import scalaz.zio.{Ref, UIO, ZIO}
 import tictactoe.domain.runner.GameStateSink
 import tictactoe.stringpresenter.GameStringViewModel
+import tictactoe.typeclasses.MonadE._
+import tictactoe.typeclasses.{MonadE, URef}
 
-final class ConsoleGameStateSink(view: GameStringView, screen: Ref[GameStringViewModel])
-    extends GameStateSink[GameStringViewModel] {
+final class ConsoleGameStateSink[F[+_, +_]: MonadE](
+    view: GameStringView,
+    screen: URef[F, GameStringViewModel],
+    console: Console[F]
+) extends GameStateSink[F, GameStringViewModel] {
 
-  override def update(f: GameStringViewModel => GameStringViewModel): UIO[Unit] =
+  override def update(f: GameStringViewModel => GameStringViewModel): F[Nothing, Unit] =
     for {
       currentScreen <- screen.get
       newScreen = f(currentScreen)
       _ <- screen.set(newScreen)
-      _ <- putStrLn(view.render(newScreen))
+      _ <- console.put(view.render(newScreen))
     } yield ()
-
-  private def putStrLn(line: String, newLines: Int = 0): UIO[Unit] =
-    ZIO.effectTotal(println(line + "\n" * newLines))
 }

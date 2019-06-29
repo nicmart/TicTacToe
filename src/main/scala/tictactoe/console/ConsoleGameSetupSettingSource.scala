@@ -1,26 +1,23 @@
 package tictactoe.console
 
-import scalaz.zio.{IO, UIO, ZIO}
 import tictactoe.domain.setup.GameSetupSettingsSource
 import tictactoe.domain.setup.GameSetupSettingsSource.Error.InvalidSetting
-
-import scala.io.StdIn
+import tictactoe.typeclasses.MonadE
+import tictactoe.typeclasses.MonadE._
 import scala.util.Try
 
-class ConsoleGameSetupSettingSource extends GameSetupSettingsSource {
+class ConsoleGameSetupSettingSource[F[+_, +_]: MonadE](console: Console[F])
+    extends GameSetupSettingsSource[F] {
 
-  override def askGameSize: IO[GameSetupSettingsSource.Error, Int] =
-    for {
-      input <- readLn
-      size <- IO.fromEither(Try(input.toInt).toEither).mapError(_ => InvalidSetting)
-    } yield size
+  override def askGameSize: F[GameSetupSettingsSource.Error, Int] =
+    askInt
 
-  override def askWinningGameLength(gameSize: Int): IO[GameSetupSettingsSource.Error, Int] =
+  override def askWinningGameLength: F[GameSetupSettingsSource.Error, Int] =
+    askInt
+
+  private def askInt: F[GameSetupSettingsSource.Error, Int] =
     for {
-      input <- readLn
-      length <- IO.fromEither(Try(input.toInt).toEither).mapError(_ => InvalidSetting)
+      input <- console.read.mapError(_ => InvalidSetting)
+      length <- MonadE[F].fromEither(Try(input.toInt).toEither).mapError(_ => InvalidSetting)
     } yield length
-
-  private def readLn: UIO[String] =
-    ZIO.effectTotal(StdIn.readLine().trim)
 }
